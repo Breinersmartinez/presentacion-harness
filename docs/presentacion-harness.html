@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nuestro harness de desarrollo con IA</title>
+<style>
+  :root{
+    --papel:#F3F4EE;
+    --tinta:#1C2333;
+    --verde:#245C43;
+    --verde-claro:#E7EBE3;
+    --ambar:#9C5B0E;
+    --plomo:#D9D5C6;
+    --tinta-suave:#5A6577;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background:var(--papel);
+    color:var(--tinta);
+    font-family:var(--sans);
+    line-height:1.5;
+    padding:0 0 4rem 0;
+  }
+  .deck{ max-width:1280px; margin:0 auto; padding:1rem; }
+  .slide{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    background:var(--papel);
+    border:1px solid var(--plomo);
+    padding:2.4rem 3rem 1.6rem;
+    margin:0 0 1.5rem 0;
+    display:flex;
+    flex-direction:column;
+    overflow:auto;
+  }
+  .slide:last-child{ margin-bottom:0; }
+  .cinta{
+    font-family:var(--mono);
+    font-size:.82rem;
+    letter-spacing:.03em;
+    color:var(--tinta-suave);
+    padding-bottom:.7rem;
+    border-bottom:1px solid var(--plomo);
+    margin-bottom:1.2rem;
+    white-space:nowrap;
+    overflow-x:auto;
+  }
+  .cinta .cur{ color:var(--verde); font-weight:700; }
+  .cinta .rail{
+    display:block;
+    margin-top:.35rem;
+    color:var(--tinta-suave);
+    font-size:.7rem;
+  }
+  .kicker{
+    font-family:var(--mono);
+    font-size:.85rem;
+    color:var(--verde);
+    letter-spacing:.02em;
+    margin-bottom:.4rem;
+  }
+  h1{
+    font-family:var(--mono);
+    font-weight:800;
+    font-size:clamp(2.2rem, 4.6vw, 4rem);
+    line-height:1.02;
+    letter-spacing:-.02em;
+    color:var(--verde);
+  }
+  h2{
+    font-family:var(--mono);
+    font-weight:800;
+    font-size:clamp(1.5rem, 3vw, 2.4rem);
+    line-height:1.05;
+    letter-spacing:-.01em;
+    color:var(--verde);
+  }
+  p{ font-size:clamp(1.05rem, 1.6vw, 1.4rem); }
+  .mensaje{ font-size:clamp(1.05rem, 1.6vw, 1.35rem); max-width:60ch; }
+  .tesis{
+    font-size:clamp(1.15rem, 1.9vw, 1.6rem);
+    font-weight:600;
+    color:var(--tinta);
+    border-left:4px solid var(--ambar);
+    padding:.6rem 0 .6rem 1.1rem;
+    max-width:52ch;
+  }
+  .chip{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:.95rem;
+    background:var(--verde-claro);
+    border:1px solid var(--plomo);
+    color:var(--verde);
+    padding:.15rem .6rem;
+    border-radius:.25rem;
+  }
+  .chip.gris{ background:transparent; color:var(--tinta-suave); }
+  a.chip{ text-decoration:none; }
+  a.chip:hover{ text-decoration:underline; color:var(--ambar); }
+  a, a:visited{ color:var(--verde); text-decoration:underline; text-underline-offset:.15em; }
+  a:hover{ color:var(--ambar); }
+  .filas{ display:flex; gap:1.4rem; align-items:baseline; flex-wrap:wrap; }
+  .cifra{ font-family:var(--mono); font-weight:800; font-size:clamp(1.6rem, 2.8vw, 2.4rem); color:var(--verde); }
+  .cifra small{ display:block; font-weight:600; font-size:clamp(.8rem, 1.1vw, 1rem); color:var(--tinta-suave); }
+  .cols{ display:grid; grid-template-columns:repeat(auto-fit,minmax(15rem,1fr)); gap:1.2rem; margin-top:.4rem; }
+  .capa{ border-top:3px solid var(--verde); padding:.8rem .4rem 0; }
+  .capa .n{ font-family:var(--mono); font-size:.8rem; color:var(--ambar); font-weight:700; }
+  .capa h3{ font-family:var(--mono); font-size:1.2rem; margin:.1rem 0 .3rem; }
+  .capa .ruta{ font-family:var(--mono); font-size:.9rem; color:var(--verde); margin-bottom:.4rem; }
+  .capa p{ font-size:1rem; }
+  .lista{ list-style:none; }
+  .lista li{
+    display:flex; gap:.7rem; align-items:baseline;
+    padding:.45rem 0; border-bottom:1px solid var(--plomo);
+    font-size:clamp(1rem,1.5vw,1.25rem);
+  }
+  .lista li .let{ font-family:var(--mono); font-weight:700; color:var(--ambar); min-width:1.4rem; }
+  .banderas{ display:flex; gap:1.2rem; flex-wrap:wrap; margin-top:.3rem; }
+  .bandera{ font-family:var(--mono); font-size:.95rem; color:var(--tinta); }
+  .bandera b{ color:var(--ambar); }
+  table{ border-collapse:collapse; font-size:clamp(.85rem, 1.25vw, 1.05rem); width:100%; }
+  th, td{ border:1px solid var(--plomo); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th{ font-family:var(--mono); font-size:.85em; color:var(--verde); background:var(--verde-claro); }
+  .ok{ color:var(--verde); font-family:var(--mono); font-weight:700; white-space:nowrap; }
+  .nv{ color:var(--ambar); font-family:var(--mono); font-weight:700; white-space:nowrap; }
+  .regla{
+    font-family:var(--mono);
+    font-size:clamp(.9rem,1.3vw,1.1rem);
+    border-left:4px solid var(--verde);
+    background:var(--verde-claro);
+    padding:.6rem .9rem;
+    margin:.5rem 0;
+  }
+  .espacio{ flex:1; }
+  .notas{
+    display:none;
+    font-family:var(--mono);
+    font-size:.9rem;
+    line-height:1.45;
+    border-top:1px dashed var(--plomo);
+    margin-top:.9rem;
+    padding-top:.6rem;
+    color:var(--tinta-suave);
+  }
+  .barra{
+    display:none;
+    position:fixed;
+    left:0; right:0; bottom:0;
+    background:var(--tinta);
+    color:var(--papel);
+    font-family:var(--mono);
+    font-size:.9rem;
+    z-index:10;
+    justify-content:space-between;
+    align-items:center;
+    padding:.5rem 1rem;
+  }
+  .barra button{
+    font-family:var(--mono);
+    font-size:.95rem;
+    background:var(--verde);
+    color:var(--papel);
+    border:0;
+    padding:.35rem .9rem;
+    cursor:pointer;
+    border-radius:.2rem;
+  }
+  .barra button:hover{ background:var(--ambar); color:var(--papel); }
+  .barra .ctr{ display:flex; gap:.5rem; align-items:center; }
+  .barra .tecla{ color:var(--plomo); }
+  .barra a, .barra a:visited{ color:var(--plomo); }
+  html.js body{ padding-bottom:4.5rem; }
+  html.js .slide{ display:none; }
+  html.js .slide.activa{ display:flex; }
+  html.js .barra{ display:flex; }
+  html.notas-on .notas{ display:block; }
+  button:focus-visible, a:focus-visible{ outline:3px solid var(--ambar); outline-offset:2px; }
+  .hero{ align-items:flex-start; justify-content:center; }
+  .hero h1{ margin-bottom:1.2rem; }
+  @keyframes trazar{ from{ transform:scaleX(0);} to{ transform:scaleX(1);} }
+  @media (prefers-reduced-motion: no-preference){
+    .hero .cinta{ transform-origin:left; animation:trazar .7s ease-out; }
+  }
+  @media (max-width:720px){
+    .slide{ aspect-ratio:auto; min-height:60vh; padding:1.4rem 1.2rem; }
+    .deck{ padding:0 0 .5rem 0; }
+  }
+</style>
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+<main class="deck" id="deck">
+
+  <!-- 1 · Portada -->
+  <section class="slide hero" data-n="1" data-titulo="Portada">
+    <div class="cinta">Requisito <span aria-hidden="true">→</span> Especificación <span aria-hidden="true">→</span> Plan <span aria-hidden="true">→</span> Ejecución <span aria-hidden="true">→</span> Validación<span class="rail">════════ auditar-contexto ════════ (control transversal)</span></div>
+    <p class="kicker">Primer momento evaluativo · desarrollo con IA</p>
+    <h1>Nuestro harness de<br>desarrollo con IA</h1>
+    <p class="tesis" style="margin-top:.9rem">Impedimos que la IA pase directo del requerimiento al código: decide, planifica, ejecuta de a una tarea y valida con evidencia, y cada paso deja un entregable que se abre y se revisa.</p>
+    <div class="espacio"></div>
+    <div class="filas" style="margin-top:auto">
+      <span class="chip">Breiner Martinez</span>
+      <span class="chip gris">19 de septiembre de 2026</span>
+    </div>
+    <aside class="notas"><strong>Notas.</strong> Abrir con la tesis: “impedimos que la IA pase directo del requerimiento al código”. Decir que la herramienta que usó este grupo en el proyecto es el harness, no la IA suelta. Mencionar que cada diapositiva muestra la estación de la cadena en la que estamos.</aside>
+  </section>
+
+  <!-- 2 · El problema -->
+  <section class="slide" data-n="2" data-titulo="El problema">
+    <div class="cinta">Requisito <span class="cur">→</span> Especificación <span aria-hidden="true">→</span> Plan <span aria-hidden="true">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
+    <p class="kicker">01 · Por qué existe esto</p>
+    <h2>La IA rellena los huecos</h2>
+    <p class="mensaje" style="margin-top:1rem">Si no la frenamos, una IA completa lo que no le dijimos con suposiciones plausibles: inventa límites, roles, políticas y plazos.</p>
+    <p class="tesis" style="margin-top:1.2rem">Nuestra respuesta: obligarla a <b>decidir</b>, <b>planificar</b>, <b>ejecutar de a una</b> tarea y <b>validar con evidencia</b>. Ninguna etapa avanza sin su documento.</p>
+    <aside class="notas"><strong>Notas.</strong> Ejemplo real: cuando pedimos directamente una especificación, la skill preguntó las decisiones pendientes y no redactó nada antes de las respuestas. Sin esa barrera, la IA habría elegido por nosotros.</aside>
+  </section>
+
+  <!-- 3 · Mapa del harness -->
+  <section class="slide" data-n="3" data-titulo="Mapa del harness">
+    <div class="cinta">Contexto <span aria-hidden="true">→</span> Skills <span aria-hidden="true">→</span> Evidencia</div>
+    <p class="kicker">02 · La estructura de un vistazo</p>
+    <h2>Mapa del harness</h2>
+    <div class="cols">
+      <div class="capa">
+        <p class="n">01</p>
+        <h3>Contexto</h3>
+        <p class="ruta">AGENTS.md</p>
+        <p>Reglas operativas, convenciones y qué no hacer. Lo que un agente lee antes de decidir.</p>
+      </div>
+      <div class="capa">
+        <p class="n">02</p>
+        <h3>Skills</h3>
+        <p class="ruta">.opencode/skills/</p>
+        <p>Seis SKILL.md. Se activan solas por su descripción, sin que nadie escriba su nombre. Cada una con su regla dura.</p>
+      </div>
+      <div class="capa">
+        <p class="n">03</p>
+        <h3>Evidencia</h3>
+        <p class="ruta">docs/ y producto/</p>
+        <p>La spec, el plan, el informe de validación y el HTML del producto. Se abren con doble clic.</p>
+      </div>
+    </div>
+    <p class="mensaje" style="margin-top:1rem">Todo en español, autocontenido, sin build y sin servidor.</p>
+    <aside class="notas"><strong>Notas.</strong> Tres capas: contexto (instrucciones), skills (comportamiento) y evidencia (pruebas). Señalar que las skills se activan por su descripción: en el reto nunca las nombramos, solo pedíamos el resultado.</aside>
+  </section>
+
+  <!-- 4 · El flujo -->
+  <section class="slide" data-n="4" data-titulo="El flujo">
+    <div class="cinta">Requisito <span class="cur">→</span> Especificación <span class="cur">→</span> Plan <span class="cur">→</span> Ejecución <span class="cur">→</span> Validación</div>
+    <p class="kicker">03 · Un requisito no llega directo al código</p>
+    <h2>El flujo</h2>
+    <svg viewBox="0 0 1100 330" role="img" aria-labelledby="f-titulo f-desc" style="width:100%;height:auto;margin-top:1rem">
+      <title id="f-titulo">Flujo de la cadena: de requisito a validación</title>
+      <desc id="f-desc">Cinco estaciones conectadas: requisito, especificación, plan, ejecución y validación; debajo corre el riel transversal de auditar-contexto; tres banderas ámbar marcan los puntos donde interviene una persona.</desc>
+      <defs>
+        <marker id="flecha" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#245C43"/></marker>
+      </defs>
+      <g font-family="ui-monospace, monospace">
+        <g>
+          <text x="12" y="26" fill="#245C43" font-size="15" font-weight="700">Requisito</text>
+          <rect x="10" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
+          <text x="85" y="60" text-anchor="middle" fill="#1C2333" font-size="12">“Necesito reservar</text>
+          <text x="85" y="78" text-anchor="middle" fill="#1C2333" font-size="12">un puesto”</text>
+        </g>
+        <g>
+          <text x="222" y="26" fill="#245C43" font-size="15" font-weight="700">Especificación</text>
+          <rect x="220" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
+          <text x="295" y="60" text-anchor="middle" fill="#1C2333" font-size="12">7 secciones ·</text>
+          <text x="295" y="78" text-anchor="middle" fill="#1C2333" font-size="12">§3, §6, §7 deciden</text>
+          <circle cx="295" cy="122" r="7" fill="#C77E1E"/>
+          <text x="294" y="158" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">persona responde</text>
+          <text x="294" y="174" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">las preguntas</text>
+        </g>
+        <g>
+          <text x="432" y="26" fill="#245C43" font-size="15" font-weight="700">Plan</text>
+          <rect x="430" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
+          <text x="505" y="60" text-anchor="middle" fill="#1C2333" font-size="12">4 tareas ·</text>
+          <text x="505" y="78" text-anchor="middle" fill="#1C2333" font-size="12">responsable y Sí/No</text>
+        </g>
+        <g>
+          <text x="642" y="26" fill="#245C43" font-size="15" font-weight="700">Ejecución</text>
+          <rect x="640" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
+          <text x="715" y="60" text-anchor="middle" fill="#1C2333" font-size="12">una tarea por vez</text>
+          <text x="715" y="78" text-anchor="middle" fill="#1C2333" font-size="12">· se verifica</text>
+          <circle cx="715" cy="122" r="7" fill="#C77E1E"/>
+          <text x="714" y="158" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">persona confirma</text>
+          <text x="714" y="174" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">antes de tocar nada</text>
+        </g>
+        <g>
+          <text x="852" y="26" fill="#245C43" font-size="15" font-weight="700">Validación</text>
+          <rect x="850" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
+          <text x="925" y="60" text-anchor="middle" fill="#1C2333" font-size="12">veredicto con</text>
+          <text x="925" y="78" text-anchor="middle" fill="#1C2333" font-size="12">evidencia, sin editar</text>
+          <circle cx="925" cy="122" r="7" fill="#C77E1E"/>
+          <text x="924" y="158" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">persona recibe</text>
+          <text x="924" y="174" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">el veredicto</text>
+        </g>
+      </g>
+      <g stroke="#245C43" stroke-width="2.5" marker-end="url(#flecha)">
+        <path d="M160 65 H216"/>
+        <path d="M370 65 H426"/>
+        <path d="M580 65 H636"/>
+        <path d="M790 65 H846"/>
+      </g>
+      <g font-family="ui-monospace, monospace">
+        <rect x="10" y="230" width="990" height="34" rx="3" fill="none" stroke="#C77E1E" stroke-dasharray="6 5" stroke-width="2"/>
+        <text x="24" y="252" fill="#C77E1E" font-size="13" font-weight="700">auditar-contexto</text>
+        <text x="210" y="252" fill="#5A6577" font-size="12">revisa AGENTS.md contra docs, skills y producto; no edita nada</text>
+      </g>
+      <g font-family="ui-monospace, monospace">
+        <circle cx="20" cy="140" r="6" fill="#C77E1E"/>
+        <circle cx="20" cy="165" r="6" fill="none" stroke="#245C43" stroke-width="1.5"/>
+        <text x="38" y="145" fill="#1C2333" font-size="12">bandera ámbar = interviene una persona</text>
+        <text x="38" y="170" fill="#1C2333" font-size="12">caja verde = entregable que se abre y revisa</text>
+      </g>
+    </svg>
+    <aside class="notas"><strong>Notas.</strong> Recorrer de izquierda a derecha: requisito, especificación (la persona responde las decisiones), plan, ejecución (la persona confirma antes de cada cambio), validación (la persona recibe el veredicto). Debajo va auditar-contexto como control transversal que no edita. Los tres puntos ámbar son donde el humano, no la IA, toma la decisión.</aside>
+  </section>
+
+  <!-- 5 · Las 6 skills -->
+  <section class="slide" data-n="5" data-titulo="Las 6 skills">
+    <div class="cinta">Contexto <span class="cur">→</span> Skills <span aria-hidden="true">→</span> Evidencia</div>
+    <p class="kicker">04 · Qué hace cada una y su regla dura</p>
+    <h2>Las 6 skills</h2>
+    <ul class="lista">
+      <li><span class="let">S1</span><span><b>crear-especificacion</b> — convierte una petición en un contrato con decisiones. Regla real: “No avances a la redacción mientras una decisión material no esté definida.”</span></li>
+      <li><span class="let">S2</span><span><b>escribir-plan</b> — deriva tareas verificables de la spec. Regla real: “Ninguna tarea dura más de media jornada; cada una tiene responsable y criterio Sí/No.”</span></li>
+      <li><span class="let">S3</span><span><b>ejecutar-plan</b> — hace una tarea por vez y espera confirmación. Regla real: “Si no puede verificar un criterio, lo declara no verificable; nunca lo declara cumplido.”</span></li>
+      <li><span class="let">S4</span><span><b>validar-resultado</b> — contrasta el resultado con la spec, sin editarlo. Regla real: “Un ‘Sí’ sin evidencia está prohibido.”</span></li>
+      <li><span class="let">S5</span><span><b>auditar-contexto</b> — ya adaptada a este repositorio; revisa si AGENTS.md sigue alineado con docs, skills y producto. Regla real: “Cada hallazgo cita una ruta y una evidencia observable.”</span></li>
+      <li><span class="let">S6</span><span><b>frontend-design</b> — la skill del profesor, usada tal cual, para diseño visual distintivo. Esta presentación se hizo con ella.</span></li>
+    </ul>
+    <p style="margin-top:.8rem">Se activan por su descripción, sin nombrarlas.</p>
+    <aside class="notas"><strong>Notas.</strong> En el reto las cinco primeras forman la cadena y sus refuerzos; frontend-design es del profesor y la usamos sin modificarla para esta presentación. La regla dura se lee textual de cada SKILL.md.</aside>
+  </section>
+
+  <!-- 6 · Por dentro de una skill -->
+  <section class="slide" data-n="6" data-titulo="Por dentro de una skill">
+    <div class="cinta">Skills <span class="cur">→</span> Por dentro</div>
+    <p class="kicker">05 · No es magia: es un procedimiento escrito</p>
+    <h2>Por dentro:<br>crear-especificacion</h2>
+    <div class="cols" style="margin-top:.6rem">
+      <div>
+        <p>“Convierte una petición en el acuerdo que antecede al trabajo.”</p>
+        <ul class="lista" style="margin-top:.6rem">
+          <li><span class="let">1</span><span>Identifica las decisiones que alteran alcance, comportamiento o verificación y pregunta solo las necesarias.</span></li>
+          <li><span class="let">2</span><span>No avanza a la redacción mientras una decisión no esté definida; no sustituye una respuesta por una suposición.</span></li>
+          <li><span class="let">3</span><span>Entrega un único HTML autocontenido, en español.</span></li>
+        </ul>
+      </div>
+      <div class="regla" style="border-color:var(--ambar)">Regla dura:<br>“No inventes límites, roles, políticas, plazos ni comportamientos de error. Una decisión pendiente se pregunta.”</div>
+    </div>
+    <p style="margin-top:.9rem"><a class="chip" href="07-work/especificacion-crear-especificacion.html">docs/07-work/especificacion-crear-especificacion.html</a></p>
+    <aside class="notas"><strong>Notas.</strong> Mostrar que una skill es un documento de instrucciones con procedimiento, contrato y reglas duras. Aquí, el fragmento real de crear-especificacion: preguntar antes de escribir y no inventar decisiones. Ese archivo tiene también su spec propia en docs/07-work.</aside>
+  </section>
+
+  <!-- 7 · Entregable 1: la especificación -->
+  <section class="slide" data-n="7" data-titulo="Entregable 1">
+    <div class="cinta">Requisito <span aria-hidden="true">→</span> Especificación <span class="cur">→</span> Plan <span aria-hidden="true">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
+    <p class="kicker">06 · Entregable 1</p>
+    <h2>La especificación</h2>
+    <div class="cols" style="margin-top:.5rem">
+      <div>
+        <p>7 secciones: <span class="chip">§1 Resumen</span> <span class="chip">§2 Objetivos</span> <span class="chip">§3 Fuera de alcance</span> <span class="chip">§4 Diseño</span> <span class="chip">§5 Casos borde</span> <span class="chip">§6 Criterios</span> <span class="chip">§7 Decisiones</span></p>
+        <div class="regla">§3 Fuera de alcance:<br>“Cancelación: se difiere… Inicio de sesión: no se implementa porque el reto no permite servidor… Sanciones: requieren una política institucional que el requisito no entrega.”</div>
+      </div>
+      <div>
+        <div class="regla">§6 Criterios — verificar con Sí/No:<br>“Abrir sin instalar dependencias. 20 filas y 7 franjas. Un nombre y un clic reservan. Sin nombre no reserva. La reserva sobrevive a recargar.”</div>
+        <div class="regla">§7 Decisiones —<br>identificación por nombre (máximo 40); una reserva por nombre y franja; cancelación fuera de este ciclo.</div>
+      </div>
+    </div>
+    <p style="margin-top:.9rem"><a class="chip" href="especificacion-reserva-puestos-laboratorio.html">docs/especificacion-reserva-puestos-laboratorio.html</a></p>
+    <aside class="notas"><strong>Notas.</strong> Tres decisiones duras de §7: identificarse con el nombre (se descartó login porque no hay servidor), una reserva por nombre y franja (se descartaron sanciones), y la cancelación fuera del ciclo. §3 dice en voz alta lo que no se hará y por qué.</aside>
+  </section>
+
+  <!-- 8 · Entregable 2: plan y validación -->
+  <section class="slide" data-n="8" data-titulo="Entregable 2">
+    <div class="cinta">Especificación <span aria-hidden="true">→</span> Plan <span class="cur">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
+    <p class="kicker">07 · Entregable 2</p>
+    <h2>El plan y la validación</h2>
+    <table style="margin-top:.6rem">
+      <thead><tr><th>#</th><th>Resultado</th><th>Depende</th><th>Est.</th><th>Criterio Sí/No</th></tr></thead>
+      <tbody>
+        <tr><td><b>T1</b> <span class="ok">● primera</span></td><td>Estructura de 20 puestos y 7 franjas de dos horas</td><td>—</td><td>1 h</td><td>Al abrir se ven puestos 1–20 y franjas 06–08 a 18–20</td></tr>
+        <tr><td><b>T2</b></td><td>Reserva de un puesto libre asociada a un nombre</td><td>1</td><td>2 h</td><td>Con nombre escrito, un clic reserva y muestra el nombre; sin nombre no reserva</td></tr>
+        <tr><td><b>T3</b></td><td>Persistencia local y recuperación segura</td><td>2</td><td>1 h</td><td>Tras recargar la celda continúa reservada; si los datos son inválidos, aviso</td></tr>
+        <tr><td><b>T4</b></td><td>Verificación manual de los criterios del ciclo</td><td>1, 2, 3</td><td>30 min</td><td>Evidencia de apertura, reserva, bloqueo y persistencia</td></tr>
+      </tbody>
+    </table>
+    <div class="regla" style="margin-top:.8rem"><b>Veredicto de validar-resultado</b> (ejecutado hoy, Chrome real): <span class="ok">Sirve — 5/5 criterios con evidencia</span>. “Un ‘Sí’ sin evidencia está prohibido.”</div>
+    <div class="filas" style="margin-top:.8rem"><a class="chip" href="PLAN.md">docs/PLAN.md</a> <a class="chip" href="informe-validacion-reservas-laboratorio.md">docs/informe-validacion-reservas-laboratorio.md</a></div>
+    <aside class="notas"><strong>Notas.</strong> PLAN.md: 4 tareas, cada una con responsable (Breiner Martinez), dependencias, estimación y criterio Sí/No. La tarea 1 es la primera ejecutable. El informe de validación se generó hoy ejecutando validar-resultado contra la spec: el producto cumple los 5 criterios, verificados en Chrome real.</aside>
+  </section>
+
+  <!-- 9 · El producto y la prueba -->
+  <section class="slide" data-n="9" data-titulo="Producto y prueba">
+    <div class="cinta">Plan <span class="cur">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
+    <p class="kicker">08 · Lo que se construyó y las pruebas</p>
+    <h2>El producto y la prueba</h2>
+    <div class="filas">
+      <span class="cifra">20<small>puestos</small></span>
+      <span class="cifra">7<small>franjas de 2 h</small></span>
+      <span class="cifra">140<small>celdas</small></span>
+      <span class="cifra">localStorage<small>sin backend</small></span>
+    </div>
+    <div class="regla" style="margin-top:.8rem">Demo en vivo: sin nombre no reserva · “Ana” reserva · segundo clic no cambia · al recargar persiste.</div>
+    <table style="margin-top:.8rem">
+      <thead><tr><th>Prueba</th><th>Resultado</th><th>Evidencia</th></tr></thead>
+      <tbody>
+        <tr><td>Instalación (<span class="chip">opencode debug skill</span>)</td><td class="ok">Pasó</td><td>OpenCode reconoció las cinco skills canónicas</td></tr>
+        <tr><td>Renderizado mínimo</td><td class="ok">Pasó</td><td>El DOM generado tiene 20 filas, 7 franjas y 140 celdas</td></tr>
+        <tr><td>crear-especificacion sin nombrarla</td><td class="ok">Pasó</td><td>Se activó sola, preguntó decisiones pendientes y no redactó antes de las respuestas</td></tr>
+        <tr><td>ejecutar-plan, criterio no comprobable</td><td class="nv">Pasó*</td><td>Verdictó “No verificable” (9/9 escenarios) en lugar de declarar éxito sin comprobarlo</td></tr>
+        <tr><td>Verificación manual</td><td class="ok">Pasó</td><td>Sin nombre no reserva; “Ana” reserva y bloquea; recarga persiste</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:.6rem">*“Pasó” de ejecutar-plan significa que la skill se comportó como debía: respondió “No verificable” en vez de declarar éxito sin comprobar.</p>
+    <div class="filas" style="margin-top:.6rem"><a class="chip" href="../producto/reservas-laboratorio.html">producto/reservas-laboratorio.html</a></div>
+    <aside class="notas"><strong>Notas.</strong> Destacar la fila ejecutar-plan: “Pasó” quiere decir que la skill no mintió; el criterio de persistencia no era comprobable en ese entorno y respondió “No verificable” (9/9 escenarios simulados). Hoy, el informe de validación compró ese mismo criterio en un navegador real.</aside>
+  </section>
+
+  <!-- 10 · Nuestro proceso -->
+  <section class="slide" data-n="10" data-titulo="Nuestro proceso">
+    <div class="cinta">Toda la cadena</div>
+    <p class="kicker">09 · Qué aprendimos</p>
+    <h2>Nuestro proceso</h2>
+    <ul class="lista">
+      <li><span class="let">a</span><span><b>El control que funcionó.</b> ejecutar-plan respondió “No verificable” en lugar de declarar éxito. Un entregable honesto vale más que una tarea marcada.</span></li>
+      <li><span class="let">b</span><span><b>La decisión.</b> Descartamos nuestra skill de presentaciones y usamos la del profesor, sin modificar. Esta presentación es la evidencia de esa decisión.</span></li>
+      <li><span class="let">c</span><span><b>El límite reconocido.</b> La cancelación de reservas quedó fuera del ciclo a propósito, para cumplir y verificar un mínimo completo.</span></li>
+    </ul>
+    <div class="filas" style="margin-top:1rem"><a class="chip" href="07-work/especificacion-frontend-design.html">docs/07-work/especificacion-frontend-design.html</a><span class="chip gris">archivada hasta nueva decisión</span></div>
+    <aside class="notas"><strong>Notas.</strong> (a) La herramienta nos frenó para no declarar éxito sin evidencia; eso es el harness. (b) La spec de decks que hicimos quedó archivada en docs/07-work; usamos la skill del profesor y este deck lo demuestra. (c) La cancelación se difirió en la spec §7: mejor un ciclo corto verificado.</aside>
+  </section>
+
+  <!-- 11 · Cierre -->
+  <section class="slide" data-n="11" data-titulo="Cierre">
+    <div class="cinta">Requisito <span aria-hidden="true">→</span> Especificación <span aria-hidden="true">→</span> Plan <span aria-hidden="true">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
+    <p class="kicker">10 · Cierre</p>
+    <h1 style="font-size:clamp(1.8rem,3.4vw,2.8rem)">Lo que nos llevamos</h1>
+    <p class="tesis" style="margin-top:1rem">Impedimos que la IA pase directo del requerimiento al código: decide, planifica, ejecuta de a una tarea y valida con evidencia, y cada paso deja un entregable que se abre y se revisa.</p>
+    <div class="cols" style="margin-top:1.4rem">
+      <div class="capa"><p class="n">siguiente</p><h3>Cancelación</h3><p class="ruta">docs/especificacion-reserva-puestos-laboratorio.html</p><p>Quedó fuera del ciclo a propósito; es el próximo incremento.</p></div>
+      <div class="capa"><p class="n">aprendizaje</p><h3>Verificar, no marcar</h3><p class="ruta">docs/informe-validacion-reservas-laboratorio.md</p><p>“Tres tareas verificadas valen más que ocho con palomita.”</p></div>
+    </div>
+    <aside class="notas"><strong>Notas.</strong> Cerrar repitiendo la tesis y dejando la idea del siguiente incremento (cancelación) y el aprendizaje del equipo: la honestidad de un “No verificable” es parte del producto. Agradecer y ofrecer llevar el deck a las preguntas.</aside>
+  </section>
+
+  <!-- 12 · Respaldo (no numerada en el flujo principal) -->
+  <section class="slide" data-n="12" data-titulo="Respaldo (Plan B)">
+    <div class="cinta">Respaldo · Plan B</div>
+    <p class="kicker">Plan B · si algo falla en vivo</p>
+    <h2>Respaldo</h2>
+    <ul class="lista">
+      <li><span class="let">1</span><span>Si OpenCode falla: abrir los <span class="chip">.opencode/skills/*/SKILL.md</span> que ya viven versionados en el repo.</span></li>
+      <li><span class="let">2</span><span>Si el navegador falla: abrir <a class="chip" href="../producto/reservas-laboratorio.html">producto/reservas-laboratorio.html</a> en otro navegador.</span></li>
+      <li><span class="let">3</span><span>Artefactos para revisar: <a class="chip" href="especificacion-reserva-puestos-laboratorio.html">docs/especificacion-reserva-puestos-laboratorio.html</a> <a class="chip" href="PLAN.md">docs/PLAN.md</a> <a class="chip" href="informe-validacion-reservas-laboratorio.md">docs/informe-validacion-reservas-laboratorio.md</a>.</span></li>
+    </ul>
+    <p class="tesis" style="margin-top:1rem">Un video o una captura respalda, pero no sustituye: los entregables se abren con doble clic.</p>
+    <aside class="notas"><strong>Notas.</strong> Solo usar si falla la demo en vivo. Muestro el plan B con las rutas reales de skills, spec, plan e informe. Nada se genera en vivo: todo está versionado.</aside>
+  </section>
+
+</main>
+
+<div class="barra" role="toolbar" aria-label="Controles de la presentación">
+  <span id="contador">01 / 11</span>
+  <span class="ctr">
+    <button id="ant" type="button" aria-label="Diapositiva anterior">‹ Ant</button>
+    <button id="sig" type="button" aria-label="Diapositiva siguiente">Sig ›</button>
+    <span class="tecla">· flechas para navegar · N para notas del presentador</span>
+  </span>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var contador = document.getElementById('contador');
+  var ant = document.getElementById('ant');
+  var sig = document.getElementById('sig');
+  var actual = 0;
+
+  function numerada(i){
+    var n = parseInt(slides[i].getAttribute('data-n'), 10);
+    return (n === 12) ? 'respaldo' : ('0' + n).slice(-2) + ' / 11';
+  }
+  function mostrar(i){
+    if (i < 0 || i >= total) return;
+    slides[actual].classList.remove('activa');
+    actual = i;
+    slides[actual].classList.add('activa');
+    contador.textContent = numerada(actual) + ' · ' + slides[actual].getAttribute('data-titulo');
+    ant.disabled = (actual === 0);
+    sig.disabled = (actual === total - 1);
+  }
+  function notas(){
+    document.documentElement.classList.toggle('notas-on');
+  }
+
+  ant.addEventListener('click', function(){ mostrar(actual - 1); });
+  sig.addEventListener('click', function(){ mostrar(actual + 1); });
+  window.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { mostrar(actual + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { mostrar(actual - 1); e.preventDefault(); }
+    else if (e.key === 'n' || e.key === 'N') { notas(); }
+  });
+
+  document.querySelectorAll('.slide').forEach(function(s){ s.classList.remove('activa'); });
+  slides[0].classList.add('activa');
+  mostrar(0);
+})();
+</script>
+</body>
+</html>
