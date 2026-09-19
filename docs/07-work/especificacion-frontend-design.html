@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Especificación: skill frontend-design</title>
+  <style>
+    body { font: 16px/1.55 system-ui, sans-serif; color: #1c2820; max-width: 920px; margin: auto; padding: 2rem 1rem 4rem; }
+    h1 { border-bottom: 3px solid #28613b; padding-bottom: .5rem; } h2 { margin-top: 2.5rem; color: #174326; }
+    table { border-collapse: collapse; width: 100%; } th,td { text-align:left; vertical-align:top; padding:.55rem; border:1px solid #c8d4cb; } th { background:#e8f0e9; }
+    .nota { background:#f0f5f0; border-left:4px solid #28613b; padding:.8rem 1rem; } code { background:#edf1ed; padding:.1rem .25rem; }
+  </style>
+</head>
+<body>
+  <h1>Especificación: skill frontend-design</h1>
+  <p class="nota"><strong>Estado:</strong> <strong>descartada y reabierta.</strong> La skill canónica de frontend-design es el SKILL.md del profesor (diseño web distintivo); esta especificación de decks de presentación HTML con identidad fija queda archivada hasta nueva decisión.</p>
+
+  <h2>§1 Resumen</h2>
+  <p>Construir una skill que convierta una petición de exponer un tema en una presentación de slides en un solo HTML: el usuario aporta el contenido y la skill lo organiza en slides y lo maqueta con una identidad visual fija, sin red, sin instalación y navegable con las flechas o el clic. Es la skill que el profesor usa tal cual para sus presentaciones.</p>
+
+  <h2>§2 Objetivos</h2>
+  <ul>
+    <li>Genera un único archivo <code>docs/presentacion-&lt;tema&gt;.html</code> que abre con doble clic en un navegador moderno, sin instalar nada y sin internet.</li>
+    <li>Reproduce fielmente el contenido que entregó el usuario: cada punto aportado aparece en el deck y nada inventado se agrega.</li>
+    <li>Aplica la misma identidad visual fija en cada petición: dos presentaciones distintas se ven del mismo sistema visual.</li>
+    <li>Navega adelante y atrás con las flechas del teclado o el clic, sin recargar la página.</li>
+    <li>Si la petición llega sin contenido, pregunta por él y no genera el HTML.</li>
+  </ul>
+
+  <h2>§3 Fuera de alcance</h2>
+  <ul>
+    <li><strong>Redactar el contenido:</strong> el skill no inventa guiones, cifras, nombres, fechas ni citas; solo maqueta y organiza lo que el usuario aporta.</li>
+    <li><strong>Temas personalizables:</strong> no se pregunta por paleta, tipografía ni estilo por presentación; la identidad visual es fija y propia de la skill.</li>
+    <li><strong>Recursos remotos:</strong> no se usan imágenes, fuentes, iconos ni scripts externos; todo queda embebido en el archivo.</li>
+    <li><strong>Formatos adicionales:</strong> no se generan PDF, imágenes, GIF ni videos; la salida es el archivo HTML.</li>
+    <li><strong>Diseño de aplicaciones:</strong> no se diseñan pantallas ni prototipos de software; la skill solo produce decks de presentación.</li>
+    <li><strong>Dependencias del proyecto:</strong> la skill funciona para cualquier tema y no depende de AgroCortex ni de un caso de clase.</li>
+  </ul>
+
+  <h2>§4 Diseño</h2>
+  <p>La skill recibe una petición (tema) y el contenido a exponer. Si el contenido no está completo, lo pide antes de producir nada. Luego estructura las slides, las maqueta con el sistema visual fijo y entrega un único archivo navegable. Todas las slides viven en el documento: el JavaScript solo conmuta la visibilidad y responde a las flechas y al clic; si el JavaScript está desactivado, el contenido sigue legible por scroll.</p>
+
+  <p><strong>Sistema visual fijo de la skill</strong> (aplicado igual a toda presentación): paleta verde oscuro <code>#174326</code>, acento <code>#28613b</code>, fondo claro <code>#f6f8f6</code>, texto <code>#1c2820</code>; tipografía <code>system-ui</code>; portada con título y subtítulo, slides con encabezado y pie.</p>
+
+  <svg viewBox="0 0 800 200" role="img" aria-labelledby="titulo-flujo descripcion-flujo" xmlns="http://www.w3.org/2000/svg">
+    <title id="titulo-flujo">Flujo de una presentación</title><desc id="descripcion-flujo">La petición llega, se pide el contenido, se estructura en slides, se maqueta con el sistema fijo, se entrega el archivo navegable y se verifica.</desc>
+    <defs><marker id="f" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8z" fill="#28613b"/></marker></defs>
+    <g fill="#e8f0e9" stroke="#28613b" stroke-width="2">
+      <rect x="10" y="55" width="110" height="60" rx="8"/>
+      <rect x="142" y="55" width="110" height="60" rx="8"/>
+      <rect x="274" y="55" width="110" height="60" rx="8"/>
+      <rect x="406" y="55" width="110" height="60" rx="8"/>
+      <rect x="538" y="55" width="110" height="60" rx="8"/>
+      <rect x="670" y="55" width="110" height="60" rx="8"/>
+    </g>
+    <g stroke="#28613b" stroke-width="2" marker-end="url(#f)">
+      <path d="M120 85h16"/><path d="M252 85h16"/><path d="M384 85h16"/><path d="M516 85h16"/><path d="M648 85h16"/>
+    </g>
+    <g text-anchor="middle" font-family="system-ui" font-size="13" fill="#1c2820">
+      <text x="65" y="79">Solicitud</text><text x="65" y="98">de tema</text>
+      <text x="197" y="79">Pide el</text><text x="197" y="98">contenido</text>
+      <text x="329" y="79">Estructura</text><text x="329" y="98">en slides</text>
+      <text x="461" y="79">Maqueta</text><text x="461" y="98">tema fijo</text>
+      <text x="593" y="79">Archivo único</text><text x="593" y="98">navegable</text>
+      <text x="725" y="79">Verifica</text>
+    </g>
+  </svg>
+
+  <h2>§5 Casos borde</h2>
+  <table><thead><tr><th>Situación</th><th>Comportamiento esperado</th></tr></thead><tbody>
+    <tr><td>La petición llega sin contenido.</td><td>La skill pregunta por el contenido y no genera el HTML hasta recibirlo.</td></tr>
+    <tr><td>El usuario pide colores o estilo de su marca.</td><td>Se responde que la identidad es fija y se aplica el sistema propio de la skill.</td></tr>
+    <tr><td>El usuario pide incluir una imagen o logo externo.</td><td>No se carga ningún recurso remoto; se comunica la restricción y se maqueta sin ese recurso.</td></tr>
+    <tr><td>El contenido es largo para una sola slide.</td><td>Se parte en varias slides manteniendo el orden y jerarquía del contenido aportado.</td></tr>
+    <tr><td>El navegador tiene el JavaScript desactivado.</td><td>Las slides quedan apiladas en el documento y el contenido se lee por scroll.</td></tr>
+    <tr><td>El usuario pide redactar él mismo las frases de una slide.</td><td>Se maqueta con las frases entregadas sin reescribirlas.</td></tr>
+  </tbody></table>
+
+  <h2>§6 Criterios de aceptación</h2>
+  <table><thead><tr><th>Criterio</th><th>Cómo verificar</th><th>Sí/No</th></tr></thead><tbody>
+    <tr><td>El archivo abre con doble clic sin instalar dependencias.</td><td>Abrirlo en un navegador moderno.</td><td>☐ Sí ☐ No</td></tr>
+    <tr><td>Todo el contenido aportado por el usuario aparece, sin datos inventados.</td><td>Comparar cada punto entregado contra el deck.</td><td>☐ Sí ☐ No</td></tr>
+    <tr><td>Dos peticiones distintas producen el mismo sistema visual.</td><td>Generar dos decks de temas distintos y comparar paleta y estructura.</td><td>☐ Sí ☐ No</td></tr>
+    <tr><td>Las flechas o el clic permiten ir adelante, atrás y volver a la primera slide.</td><td>Recorrer el deck completo con el teclado.</td><td>☐ Sí ☐ No</td></tr>
+    <tr><td>Sin conexión a internet el deck se ve completo.</td><td>Abrir el archivo con la red desactivada.</td><td>☐ Sí ☐ No</td></tr>
+    <tr><td>Con JavaScript desactivado el contenido sigue legible.</td><td>Abrir el archivo con JS bloqueado y recorrerlo por scroll.</td><td>☐ Sí ☐ No</td></tr>
+    <tr><td>Sin contenido no se genera el HTML.</td><td>Pedir una presentación sin aportar contenido y observar la pregunta.</td><td>☐ Sí ☐ No</td></tr>
+  </tbody></table>
+
+  <h2>§7 Decisiones</h2>
+  <table><thead><tr><th>Duda</th><th>Elección</th><th>Descartado</th><th>Por qué</th></tr></thead><tbody>
+    <tr><td>¿Qué produce la skill?</td><td>Solo presentaciones de slides en un HTML.</td><td>Prototipos de aplicaciones.</td><td>El uso que el profesor le da es exponer; el diseño de apps exige otro alcance.</td></tr>
+    <tr><td>¿Quién escribe el contenido?</td><td>El usuario; la skill maqueta y organiza.</td><td>Que la skill redacte el guion.</td><td>Redactar implicaría inventar hechos fuera de lo aportado.</td></tr>
+    <tr><td>¿Qué tecnología usa el HTML?</td><td>Archivo único con JavaScript mínimo solo para navegar.</td><td>Frameworks, animaciones y recursos externos.</td><td>Debe abrir sin instalación, sin red y ser portable.</td></tr>
+    <tr><td>¿Cómo decide la apariencia?</td><td>Identidad visual fija propia de la skill.</td><td>Preguntar paleta por presentación o identidad del equipo.</td><td>El profesor la usa tal cual y la coherencia no depende de cada petición.</td></tr>
+    <tr><td>¿Dónde queda la salida?</td><td><code>docs/presentacion-&lt;tema&gt;.html</code>.</td><td>Carpeta separada para presentaciones.</td><td>Mantiene el mismo patrón de la spec y queda versionada en el repo.</td></tr>
+    <tr><td>¿La skill depende de AgroCortex?</td><td>No; es agnóstica.</td><td>Atarla a la marca del proyecto.</td><td>Coincide con el resto del harness: skills reutilizables y agnósticas.</td></tr>
+  </tbody></table>
+</body>
+</html>
