@@ -9,7 +9,7 @@
 ## Como se corre
 - Skills: `cd ~/Development/IdeaProjects/presentacion-harness && opencode`. OpenCode ejecuta la cadena canónica desde el espejo global `~/.opencode/skills/`, que prevalece sobre el `.opencode/skills/` del proyecto para el mismo nombre; el `.opencode/` del proyecto solo aporta las skills sin homónimo global (p. ej. `frontend-design`).
 - Producto: abrir `producto/reservas-laboratorio.html` con doble clic (usa `localStorage`, sin backend).
-- Agente de consola: `PROVEEDOR` y `API_KEY` en el entorno, y `python3 producto/agente-consola/agente.py`. Sin `API_KEY` arranca en MODO SIMULADO (sin red). `scripts/agente_laboratorio.py` es un enlace simbólico al mismo archivo, para la ruta que pide el enunciado. Detalles en `producto/agente-consola/README.md`.
+- Agente de consola: `PROVEEDOR` y `API_KEY` en el entorno, y `python3 producto/agente-consola/agente.py`. Sin `API_KEY` arranca en MODO SIMULADO (sin red); con `.env` presente junto al agente se carga solo y llama al proveedor de verdad, gastando cuota. Para volver al simulado sin borrar el archivo: `API_KEY= python3 producto/agente-consola/agente.py`. `scripts/agente_laboratorio.py` es un enlace simbólico al mismo archivo, para la ruta que pide el enunciado. Detalles en `producto/agente-consola/README.md`.
 - No hay comandos de build, test ni instalación en este repo.
 
 ## Convenciones

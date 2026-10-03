@@ -18,6 +18,33 @@ import ssl
 import urllib.error
 import urllib.request
 
+
+def _cargar_dotenv():
+    """Lee un .env junto al script, sin dependencias externas.
+
+    Solo pares CLAVE=VALOR, sin comillas ni escapes. Lo que ya este en el
+    entorno gana sobre el archivo, para poder sobrescribir en una prueba sin
+    editarlo. Se resuelve el enlace simbolico de scripts/ para que la busqueda
+    caiga siempre junto al agente.py real.
+    """
+    ruta = os.path.join(os.path.dirname(os.path.realpath(__file__)), ".env")
+    try:
+        with open(ruta, encoding="utf-8") as archivo:
+            lineas = archivo.readlines()
+    except OSError:
+        return
+    for linea in lineas:
+        linea = linea.strip()
+        if not linea or linea.startswith("#") or "=" not in linea:
+            continue
+        clave, _, valor = linea.partition("=")
+        clave = clave.strip()
+        if clave and clave not in os.environ:
+            os.environ[clave] = valor.strip().strip("'\"")
+
+
+_cargar_dotenv()
+
 # ---------------------------------------------------------------------------
 # PIEZA 1 - Configuracion (proveedor, endpoint y credenciales)
 # ---------------------------------------------------------------------------
@@ -221,7 +248,15 @@ def simular_respuesta(mensajes):
         for indice, mensaje in enumerate(mensajes)
         if mensaje["role"] == "user" and not mensaje["content"].startswith("OBSERVACION")
     )
-    pregunta = mensajes[inicio]["content"].lower()
+    # El HTML del proyecto escribe las franjas con guion largo (06–08). Si se
+    # normaliza aqui, copiar una franja del producto a la consola funciona en
+    # vez de caer callado en la franja por defecto.
+    pregunta = (
+        mensajes[inicio]["content"]
+        .lower()
+        .replace("\u2013", "-")
+        .replace("\u2014", "-")
+    )
     acciones = [
         mensaje for mensaje in mensajes[inicio:]
         if mensaje["role"] == AGENTE and mensaje["content"].startswith("ACCION:")
@@ -253,13 +288,21 @@ def simular_respuesta(mensajes):
         return "FINAL: La cancelación fue autorizada y la reserva se liberó correctamente."
 
     coincidencia = re.search(r"\b(\d{1,2})(?::00)?\s*(?:-|a)\s*(\d{1,2})(?::00)?\b", pregunta)
-    franja = (
-        f"{int(coincidencia.group(1)):02d}:00-{int(coincidencia.group(2)):02d}:00"
-        if coincidencia else "10:00-12:00"
-    )
+    if coincidencia:
+        franja = f"{int(coincidencia.group(1)):02d}:00-{int(coincidencia.group(2)):02d}:00"
+        franjas_del_puesto = ""
+    else:
+        # Sin franja reconocible se consulta la de las 10:00, pero el FINAL lo
+        # dice: el operador no debe leer un 10:00-12:00 como respuesta a lo que
+        # pregunto.
+        franja = "10:00-12:00"
+        franjas_del_puesto = (
+            f" No encontre una franja en tu peticion, asi que mire {franja};"
+            f" las franjas son: {', '.join(FRANJAS)}."
+        )
     if not acciones:
         return f"ACCION: consultar_disponibilidad:{franja}"
-    return f"FINAL: {ultima_observacion} El laboratorio atiende hasta las 20:00."
+    return f"FINAL: {ultima_observacion}{franjas_del_puesto} El laboratorio atiende hasta las 20:00."
 
 # ---------------------------------------------------------------------------
 # PIEZA 4 y 5 - Memoria (historial) y bucle ReAct con criterio de parada.

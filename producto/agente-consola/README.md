@@ -12,13 +12,36 @@ Agente agéntico en **Python 3 puro, sin librerías externas y sin `pip install`
 python3 producto/agente-consola/agente.py
 ```
 
+### Archivo `.env`
+
+Si existe un `.env` junto al agente, se carga solo al arrancar; no hace falta
+exportar nada a mano. Solo pares `CLAVE=VALOR`, sin comillas ni escapes, y lo
+que ya esté en el entorno gana sobre el archivo. El de este repositorio está
+en `.gitignore`: **no se versiona, porque contiene una llave real.**
+
+```bash
+# producto/agente-consola/.env
+PROVEEDOR=gemini
+API_KEY=...          # la llave del proveedor; nunca la subas al repo
+MODELO=gemini-3.1-flash-lite
+MAX_VUELTAS=5
+```
+
+Importante: en cuanto existe un `API_KEY`, el agente **deja el MODO SIMULADO y
+llama al proveedor de verdad**, gastando cuota. Para volver al simulado sin
+borrar el archivo, ejecuta el agente con la variable vacía:
+
+```bash
+API_KEY= python3 producto/agente-consola/agente.py
+```
+
 Variables de entorno:
 
 | Variable | Por defecto | Para qué |
 | --- | --- | --- |
 | `API_KEY` | vacía | Llave del proveedor. **Vacía = MODO SIMULADO**, sin red |
 | `PROVEEDOR` | `gemini` | `gemini` (Google AI Studio) o `groq` |
-| `MODELO` | según proveedor | Sobrescribe el modelo del taller |
+| `MODELO` | según proveedor | Sobrescribe el modelo por defecto del taller |
 | `MAX_VUELTAS` | `5` | Tope duro de vueltas por misión |
 
 Si `API_KEY` empieza con `gsk_`, el proveedor se detecta como Groq aunque `PROVEEDOR` diga otra cosa: la llave manda sobre la variable. Un `PROVEEDOR` distinto de `gemini` o `groq` aborta con un mensaje.

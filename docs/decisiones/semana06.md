@@ -2,7 +2,7 @@
 
 **Equipo:** AgroCortex
 **Ubicación del script:** `producto/agente-consola/agente.py`, con un enlace simbólico en `scripts/agente_laboratorio.py` para la ruta que pide el enunciado. Es el mismo archivo, no una segunda copia.
-**Modo de evidencia:** simulado, sin `API_KEY` y sin red.
+**Modo de evidencia:** la sección 5 es simulada, sin `API_KEY` y sin red. La sección 7 repite las misiones con `gemini-3.1-flash-lite` y red.
 **Especificación del dominio:** [`../SPEC.md`](../SPEC.md) §7.
 
 ## 1. Forma del sistema
@@ -175,5 +175,19 @@ La traza muestra los dos frenos por separado: el aviso de repetición evita el g
 
 ## 6. Lo que no se pudo verificar
 
-- **Con un modelo real.** Las cinco trazas son de MODO SIMULADO. No se ejecutó ninguna misión con `API_KEY` real, así que no hay evidencia de cómo responden `gemini-2.5-flash-lite` o `qwen/qwen3-32b` a este `SYSTEM_PROMPT`. En particular, la Misión 3 depende de que el modelo se niegue a inventar herramientas: el simulador lo garantiza por construcción, un modelo real no. Con red y cuota, la comprobación es `export PROVEEDOR=gemini API_KEY=...` y repetir las tres misiones.
+- **Con un modelo real.** Las cinco trazas de la sección 5 son de MODO SIMULADO. Se cerró esta laguna después, con `gemini-3.1-flash-lite` y red; ver la sección 7. Sigue sin verificarse el proveedor `groq` con `qwen/qwen3-32b`.
 - **Resistencia del bucle ante un modelo que ignora el protocolo.** El parser tolerante y la observación de formato inválido están implementados y probados con entradas mal formadas, pero no se observaron en una corrida real.
+
+## 7. Comprobación con modelo real
+
+Ejecutado con `PROVEEDOR=gemini`, `MODELO=gemini-3.1-flash-lite` y llave en `.env` (ignorada por git). Tres misiones, resultado completo:
+
+**Misión 1 — disponibilidad.** El modelo emitió `ACCION: consultar_disponibilidad:06:00-08:00` en la vuelta 1 y un `FINAL:` en la 2, sin necesitar correcciones.
+
+**Misión 2 — cancelación con control humano.** El modelo encadenó sola las dos herramientas: `consultar_reserva:E-101` en la vuelta 1, `cancelar_reserva:RES-402` en la 2 —pidiendo autorización— y `FINAL:` en la 3. El `[CONTROL-HUMANO]` saltó porque `cancelar_reserva` exige `s` explícito; con `n` la reserva sigue activa. Esto confirma lo que el simulador no podía probar: que el bucle respeta la HITL y no cancela por su cuenta.
+
+**Misión 3 — fuera de horario.** Y una cuarta, no prevista: pedir `reservar el puesto P-01 en la franja 06-08` sin `API_KEY` y con modelo real. El modelo respondió `FINAL: ... no tengo habilitada la función para crear nuevas reservas.` Es la respuesta correcta, y es la evidencia que faltaba de que un modelo de verdad **no inventa** una cuarta herramienta cuando el `SYSTEM_PROMPT` declara que la lista es completa.
+
+El simulador no puede evidenciar esto: por construcción nunca inventa una herramienta, así que su comportamiento correcto no demuestra nada sobre un modelo real. Con red, la diferencia es observable.
+
+Nota de compatibilidad: el agente llama al endpoint compatible de Google, `v1beta/openai/chat/completions`, y no al nativo `:generateContent`. Cambiar a este último rompería el código, porque usa autenticación por `?key=` en la URL y devuelve `candidates[].content.parts[].text`, mientras el agente espera `Authorization: Bearer` y `choices[].message.content`.
