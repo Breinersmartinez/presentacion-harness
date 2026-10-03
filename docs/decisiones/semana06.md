@@ -1,6 +1,6 @@
 # Decisiones de arquitectura: agente del laboratorio de cómputo
 
-**Equipo:** AgroCortex
+**Equipo:** AgroCortex (Breiner Saul Martínez Muñoz; breynersmartinezmunoz@gmail.com)
 **Ubicación del script:** `producto/agente-consola/agente.py`, con un enlace simbólico en `scripts/agente_laboratorio.py` para la ruta que pide el enunciado. Es el mismo archivo, no una segunda copia.
 **Modo de evidencia:** la sección 5 es simulada, sin `API_KEY` y sin red. La sección 7 repite las misiones con `gemini-3.1-flash-lite` y red.
 **Especificación del dominio:** [`../SPEC.md`](../SPEC.md) §7.
