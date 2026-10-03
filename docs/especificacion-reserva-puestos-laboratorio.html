@@ -13,7 +13,8 @@
 </head>
 <body>
   <h1>Especificación: reserva de puestos del laboratorio</h1>
-  <p class="nota"><strong>Estado:</strong> decisiones cerradas para el Caso A del reto de semana 4. El producto será un HTML que abre sin instalación, servidor ni dependencias.</p>
+  <p class="nota"><strong>Estado:</strong> decisiones cerradas para el Caso A del reto de semana 4. El producto será un HTML que abre sin instalación, servidor ni dependencias.<br>
+  <strong>Fuente contractual:</strong> <code>SPEC.md</code>. Este HTML es su espejo legible; ante cualquier diferencia entre los dos, manda <code>SPEC.md</code>.</p>
 
   <h2>§1 Resumen</h2>
   <p>Construir una página local para que un estudiante vea los veinte puestos del laboratorio por franjas de dos horas, identifique los libres y reserve uno con su nombre; así puede escoger un puesto sin depender de una lista manual.</p>
@@ -24,6 +25,7 @@
     <li>Un usuario con nombre puede reservar una celda libre mediante un clic; el cambio se refleja en la misma vista.</li>
     <li>Una reserva permanece visible después de recargar el navegador en el mismo equipo.</li>
     <li>Una celda ya reservada no acepta una segunda reserva.</li>
+    <li>Un estudiante tiene como máximo una reserva activa: si ya reservó, el intento de reservar otra celda se rechaza con un aviso.</li>
   </ul>
 
   <h2>§3 Fuera de alcance</h2>
@@ -33,6 +35,7 @@
     <li><strong>Sincronización entre equipos:</strong> no se implementa; <code>localStorage</code> solo conserva datos en un navegador.</li>
     <li><strong>Sanciones por inasistencia:</strong> no se implementan porque requieren una política institucional que el requisito no entrega.</li>
     <li><strong>Puestos con equipamiento especial:</strong> se tratan como equivalentes en este ciclo porque no se definieron categorías.</li>
+    <li><strong>Fechas y reserva anticipada:</strong> no se modelan; la vista es el estado de un día de operación.</li>
   </ul>
 
   <h2>§4 Diseño</h2>
@@ -49,6 +52,8 @@
   <table><thead><tr><th>Situación</th><th>Comportamiento esperado</th></tr></thead><tbody>
     <tr><td>El nombre está vacío.</td><td>No se reserva la celda, se muestra un aviso y el foco vuelve al campo de nombre.</td></tr>
     <tr><td>La celda ya está reservada.</td><td>Se muestra como reservada, queda deshabilitada y no admite un clic adicional.</td></tr>
+    <tr><td>El estudiante ya tiene una reserva activa en otra celda.</td><td>No se crea la segunda reserva y se muestra un aviso que indica en qué puesto y franja está la reserva previa.</td></tr>
+    <tr><td>Dos nombres que solo difieren en mayúsculas, acentos o espacios.</td><td>Se consideran la misma persona, así que el segundo intento se rechaza.</td></tr>
     <tr><td>El almacenamiento local contiene datos inválidos.</td><td>La tabla se muestra sin reservas y explica que los datos guardados no eran válidos.</td></tr>
     <tr><td>El navegador no conserva la reserva en otro equipo.</td><td>La aplicación no promete sincronización; la reserva solo existe en el navegador que la creó.</td></tr>
   </tbody></table>
@@ -60,15 +65,22 @@
     <tr><td>Un nombre y un clic sobre una celda libre generan una reserva visible.</td><td>Escribir “Ana”, pulsar una celda libre y leer el estado.</td><td>☐ Sí ☐ No</td></tr>
     <tr><td>Sin nombre no se crea una reserva.</td><td>Vaciar el campo, pulsar una celda libre y comprobar el aviso.</td><td>☐ Sí ☐ No</td></tr>
     <tr><td>Una reserva sobrevive a recargar la página.</td><td>Reservar, recargar y revisar la misma celda.</td><td>☐ Sí ☐ No</td></tr>
+    <tr><td>Un estudiante no puede tener dos reservas activas.</td><td>Reservar con un nombre, pulsar otra celda libre con el mismo nombre y comprobar que el aviso cita la reserva previa.</td><td>☐ Sí ☐ No</td></tr>
   </tbody></table>
 
   <h2>§7 Decisiones</h2>
   <table><thead><tr><th>Duda</th><th>Elección</th><th>Descartado</th><th>Por qué</th></tr></thead><tbody>
     <tr><td>¿Cómo identificar al estudiante?</td><td>Nombre escrito, máximo 40 caracteres.</td><td>Login institucional.</td><td>El archivo debe funcionar localmente y no hay servicio de autenticación.</td></tr>
     <tr><td>¿Qué franjas existen?</td><td>Siete franjas fijas de 2 horas.</td><td>Horarios configurables.</td><td>El enunciado fija 06:00–20:00 y el reto busca un mínimo pequeño.</td></tr>
-    <tr><td>¿Cuántas reservas permite un estudiante?</td><td>Una por nombre y franja en esta vista.</td><td>Límites diarios o sanciones.</td><td>Esas políticas no están dadas y no deben inventarse.</td></tr>
+    <tr><td>¿Cuántas reservas permite un estudiante?</td><td>Una sola reserva activa por estudiante, en cualquier franja.</td><td>Límites por franja, límites diarios y sanciones.</td><td>El enunciado no da esas políticas y no deben inventarse. Una sola reserva activa es el límite más simple de explicar y de comprobar, y es la misma regla que aplica el agente de la semana 6 sobre este mismo caso.</td></tr>
+    <tr><td>¿Con cuánta anticipación se puede reservar?</td><td>El producto no modela fechas: la vista es el estado de un día de operación y una reserva vale para la franja que se elige en pantalla.</td><td>Calendario, reserva anticipada y reserva recurrente.</td><td>El caso del reto habla de franjas, no de fechas; introducir un calendario sería alcance agregado sin requisito que lo pida.</td></tr>
+    <tr><td>¿Qué pasa si el laboratorio cierra por mantenimiento un día ya reservado?</td><td>El producto no lleva la baja: si el cierre se declara, el laboratorista avisa por el canal habitual y las reservas se liberan a mano desde el navegador.</td><td>Baja automática de reservas, lista de espera y reagendamiento.</td><td>Sin servidor no hay fuente de estado externa que sepa del cierre, y automatizarlo exigiría un modelo de avisos que el caso no entrega.</td></tr>
     <tr><td>¿Dónde persiste?</td><td><code>localStorage</code> del navegador.</td><td>Base de datos o sincronización.</td><td>La restricción prohíbe servidor y dependencias.</td></tr>
-    <tr><td>¿Se puede cancelar?</td><td>No en este ciclo.</td><td>Implementarla sin verificar reserva primero.</td><td>Se prioriza cumplir y probar el mínimo funcional.</td></tr>
+    <tr><td>¿Qué pasa si el que reserva no llega?</td><td>No hay penalización: la reserva sigue ocupando el puesto hasta que se libere a mano.</td><td>Registro de inasistencia, avisos y sanciones.</td><td>Una penalización exige una política institucional que el requisito no entrega.</td></tr>
+    <tr><td>¿Hasta cuándo se puede cancelar sin consecuencia?</td><td>No se define plazo porque la cancelación no está en este ciclo.</td><td>Un plazo de cancelación libre de penalización.</td><td>Fijar un plazo sobre una operación que no existe sería especificar algo que no se puede comprobar.</td></tr>
+    <tr><td>¿Los veinte puestos son iguales?</td><td>Sí, los veinte son equivalentes en este ciclo.</td><td>Puestos con equipamiento especial.</td><td>No se definieron categorías de equipamiento en el requisito.</td></tr>
   </tbody></table>
+
+  <p class="nota"><strong>Trazabilidad:</strong> estas mismas reglas son las que aplica <code>../producto/agente-consola/agente.py</code>: 20 puestos <code>P-01</code>–<code>P-20</code>, siete franjas de dos horas entre 06:00 y 20:00 y una reserva activa por estudiante. La justificación está en <code>decisiones/semana06.md</code>.</p>
 </body>
 </html>

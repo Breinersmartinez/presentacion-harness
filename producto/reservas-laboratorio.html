@@ -20,7 +20,7 @@
 <body>
   <main>
     <h1>Reserva de puestos del laboratorio</h1>
-    <p class="ayuda">Elige una franja libre. Las reservas se guardan únicamente en este navegador.</p>
+    <p class="ayuda">Elige una celda libre. Cada estudiante tiene una sola reserva activa. Las reservas se guardan únicamente en este navegador.</p>
     <div class="formulario">
       <label for="nombre">Tu nombre <input id="nombre" autocomplete="name" maxlength="40" placeholder="Ej.: Ana Gómez"></label>
     </div>
@@ -57,6 +57,9 @@
       try { localStorage.setItem(clave, JSON.stringify(reservas)); return true; }
       catch (_) { aviso.textContent = 'No se pudo guardar la reserva en este navegador.'; return false; }
     }
+    function normalizarNombre(nombre) {
+      return nombre.normalize('NFC').toLocaleLowerCase('es').trim();
+    }
     function pintar() {
       const encabezado = document.querySelector('thead tr');
       encabezado.replaceChildren(Object.assign(document.createElement('th'), { scope: 'col', textContent: 'Puesto' }));
@@ -76,6 +79,12 @@
     function reservar(id, puesto, franja) {
       const nombre = document.querySelector('#nombre').value.trim();
       if (!nombre) { aviso.textContent = 'Escribe tu nombre antes de reservar.'; document.querySelector('#nombre').focus(); return; }
+      const yaReservaActiva = Object.entries(reservas).find(([, titular]) => normalizarNombre(titular) === normalizarNombre(nombre));
+      if (yaReservaActiva) {
+        const [puestoReservado, franjaReservada] = yaReservaActiva[0].split('-');
+        aviso.textContent = `Ya tienes una reserva activa en el puesto ${puestoReservado}, franja ${franjaReservada}. El límite es una reserva por estudiante.`;
+        return;
+      }
       reservas[id] = nombre; if (guardar()) aviso.textContent = `Reservaste el puesto ${puesto}, franja ${franja}.`; pintar();
     }
     pintar();
