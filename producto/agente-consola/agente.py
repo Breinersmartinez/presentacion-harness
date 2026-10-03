@@ -14,6 +14,7 @@ Si API_KEY esta vacia, arranca en MODO SIMULADO y opera sin red.
 import json
 import os
 import re
+import socket
 import ssl
 import urllib.error
 import urllib.request
@@ -52,6 +53,9 @@ _cargar_dotenv()
 PROVEEDOR = os.environ.get("PROVEEDOR", "gemini").strip().lower()
 API_KEY = os.environ.get("API_KEY", "").strip()
 MAX_VUELTAS = int(os.environ.get("MAX_VUELTAS", "5"))
+# Medido contra gemini-3.1-flash-lite: la latencia normal esta entre 2 y 7 s,
+# pero se disperse. Con 10 s fallaba cerca de la mitad de las llamadas.
+TIMEOUT_SEGUNDOS = float(os.environ.get("TIMEOUT_SEGUNDOS", "60"))
 
 ENDPOINTS = {
     "gemini": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
@@ -90,18 +94,46 @@ RESERVAS = {
 # ---------------------------------------------------------------------------
 
 def consultar_disponibilidad(franja):
-    """Consulta los puestos libres de una franja oficial."""
+    """Consulta una franja oficial y devuelve tanto libres como ocupados.
+
+    Se devuelven las dos listas a proposito. Cuando la herramienta solo
+    mostraba los libres, el modelo tenia que deducir que un puesto ausente de
+    la lista estaba ocupado, y lo hacia al reves: preguntaba por un puesto
+    reservado y contestaba que estaba disponible. Decirlo explicito quita esa
+    deduccion.
+    """
     franja = franja.strip()
     if franja not in FRANJAS:
         return (
             f"El laboratorio esta cerrado en la franja '{franja}'. "
             "Atiende de 06:00 a 20:00 en bloques de 2 horas."
         )
-    ocupadas = {reserva["puesto"] for reserva in RESERVAS.values() if reserva["franja"] == franja}
-    libres = [p for p in PUESTOS if p not in ocupadas]
+
+    ocupadas = {
+        reserva["puesto"]: (codigo, reserva)
+        for codigo, reserva in RESERVAS.items()
+        if reserva["franja"] == franja
+    }
+    libres = [puesto for puesto in PUESTOS if puesto not in ocupadas]
+    ocupados = (
+        ", ".join(
+            f"{puesto} ({codigo}, {reserva['id_reserva']})"
+            for puesto, (codigo, reserva) in ocupadas.items()
+        )
+        or "ninguno"
+    )
+
     if not libres:
-        return f"La franja {franja} esta completa: 20 de 20 puestos reservados."
-    return f"Puestos libres en {franja}: {', '.join(libres)}."
+        return (
+            f"La franja {franja} esta completa: {len(PUESTOS)} de {len(PUESTOS)} "
+            f"puestos reservados. Puestos ocupados: {ocupados}."
+        )
+
+    return (
+        f"Puestos libres en {franja} ({len(libres)} de {len(PUESTOS)}): "
+        f"{', '.join(libres)}. "
+        f"Puestos ocupados en {franja}: {ocupados}."
+    )
 
 
 def consultar_reserva(codigo_estudiante):
@@ -180,6 +212,10 @@ class ErrorModelo(RuntimeError):
     """Fallo de transporte o de credenciales al hablar con el proveedor."""
 
 
+class ErrorTimeout(ErrorModelo):
+    """El proveedor tardo. No es un problema de llave ni de cuota."""
+
+
 def limpiar_respuesta(texto):
     """Quita vallas de codigo y prefijos narrativos que rompen el protocolo."""
     limpio = texto.strip()
@@ -214,11 +250,19 @@ def llamar_modelo(mensajes):
         },
     )
     try:
-        with urllib.request.urlopen(peticion, timeout=10) as respuesta:
+        with urllib.request.urlopen(peticion, timeout=TIMEOUT_SEGUNDOS) as respuesta:
             cuerpo = json.loads(respuesta.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         raise ErrorModelo(f"HTTP {error.code} del proveedor: {_detalle_error(error)}") from error
-    except (urllib.error.URLError, TimeoutError, ssl.SSLError) as error:
+    except (TimeoutError, socket.timeout) as error:
+        # No confundirse con un problema de credenciales: aqui la llave y la
+        # cuota pueden estar perfectas y el proveedor simplemente tardo.
+        raise ErrorTimeout(
+            f"El proveedor no respondio en {TIMEOUT_SEGUNDOS:g} s. "
+            "Puedes subir TIMEOUT_SEGUNDOS; la llamada no se ha cobrado"
+            " ningun resultado porque no llego nada."
+        ) from error
+    except (urllib.error.URLError, ssl.SSLError) as error:
         raise ErrorModelo(f"No se pudo contactar al proveedor: {error}") from error
 
     try:
@@ -322,10 +366,15 @@ def correr_mision(pregunta, historial):
             respuesta = llamar_modelo(historial)
         except ErrorModelo as error:
             print(f"[MODELO] {error}")
-            print(
-                "Sugerencia: revisa API_KEY y la cuota del proveedor, o corre "
-                "sin API_KEY para entrar en MODO SIMULADO."
-            )
+            # No toda falla de red es un problema de credenciales: si el
+            # proveedor tardo, insistir con la llave no sirve de nada.
+            if isinstance(error, ErrorTimeout):
+                print("Sugerencia: sube TIMEOUT_SEGUNDOS. La llave no es el problema.")
+            else:
+                print(
+                    "Sugerencia: revisa API_KEY y la cuota del proveedor, o corre "
+                    "sin API_KEY para entrar en MODO SIMULADO."
+                )
             return None
 
         print(f"[Modelo] {respuesta}")

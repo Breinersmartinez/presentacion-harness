@@ -56,6 +56,8 @@ El prompt fija el rol, el horario, el límite de una reserva activa y el protoco
 
 `consultar_disponibilidad` no consulta un diccionario `DISPONIBILIDAD` como en el ejemplo del enunciado: **deriva los puestos libres de `RESERVAS`**, restando los ocupados de la franja a los 20 puestos. Es una decisión deliberada. Un diccionario de disponibilidad paralelo tendría que actualizarse en cada alta y en cada cancelación, y un forgetting en esa actualización mostraría un puesto como libre estando ocupado. Con una sola fuente de verdad no hay estado que pueda quedar desincronizado. La diferencia observable: en `10:00-12:00` el agente devuelve los 19 puestos libres (solo `P-04` está ocupado por `E-101`), donde el ejemplo del enunciado muestra cinco.
 
+**Devuelve también los ocupados, y no es cosmético.** La primera versión solo devolvía la lista de libres. Con esa salida, preguntar *"¿está ocupado el P-04 en 10:00-12:00?"* obligaba al modelo a deducir que un puesto ausente de la lista estaba ocupado, y lo hacía al revés: contestaba que `P-04` estaba libre cuando `E-101` lo tenía reservado. Se reprodujo 3 de 3 veces. El fallo no era del modelo ni del bucle, sino del formato de la herramienta: obligar a calcular un complemento sobre una lista parcial es pedir una deducción al componente menos fiable de la cadena. Con los ocupados escritos en el texto (`P-04 (E-101, RES-402)`) la misma pregunta acierta 6 de 6.
+
 `ejecutar_herramienta` intercepta `cancelar_reserva` con `input()`. Solo la respuesta exacta `s` invoca la función que elimina la reserva del diccionario en memoria. Cualquier otro valor, EOF incluido, informa rechazo y conserva el estado.
 
 ## 4. Criterio de parada y seguridad
@@ -81,12 +83,12 @@ Cada ejecución siguiente se realizó en un proceso nuevo con `API_KEY` vacía. 
 ```text
 --- Vuelta 1/5 ---
 [Modelo] ACCION: consultar_disponibilidad:10:00-12:00
-[Herramienta -> consultar_disponibilidad] Puestos libres en 10:00-12:00: P-01, P-02, P-03, P-05, P-06, P-07, P-08, P-09, P-10, P-11, P-12, P-13, P-14, P-15, P-16, P-17, P-18, P-19, P-20.
+[Herramienta -> consultar_disponibilidad] Puestos libres en 10:00-12:00 (19 de 20): P-01, P-02, P-03, P-05, P-06, P-07, P-08, P-09, P-10, P-11, P-12, P-13, P-14, P-15, P-16, P-17, P-18, P-19, P-20. Puestos ocupados en 10:00-12:00: P-04 (E-101, RES-402).
 
 --- Vuelta 2/5 ---
-[Modelo] FINAL: Puestos libres en 10:00-12:00: P-01, P-02, P-03, P-05, P-06, P-07, P-08, P-09, P-10, P-11, P-12, P-13, P-14, P-15, P-16, P-17, P-18, P-19, P-20. El laboratorio atiende hasta las 20:00.
+[Modelo] FINAL: Puestos libres en 10:00-12:00 (19 de 20): P-01, P-02, P-03, P-05, P-06, P-07, P-08, P-09, P-10, P-11, P-12, P-13, P-14, P-15, P-16, P-17, P-18, P-19, P-20. Puestos ocupados en 10:00-12:00: P-04 (E-101, RES-402). El laboratorio atiende hasta las 20:00.
 
-[RESPUESTA FINAL] Puestos libres en 10:00-12:00: P-01, P-02, P-03, P-05, P-06, P-07, P-08, P-09, P-10, P-11, P-12, P-13, P-14, P-15, P-16, P-17, P-18, P-19, P-20. El laboratorio atiende hasta las 20:00.
+[RESPUESTA FINAL] Puestos libres en 10:00-12:00 (19 de 20): P-01, P-02, P-03, P-05, P-06, P-07, P-08, P-09, P-10, P-11, P-12, P-13, P-14, P-15, P-16, P-17, P-18, P-19, P-20. Puestos ocupados en 10:00-12:00: P-04 (E-101, RES-402). El laboratorio atiende hasta las 20:00.
 ```
 
 ### Misión 2A: cancelación con rechazo humano
@@ -149,7 +151,7 @@ No es una de las tres misiones, pero es la única forma de evidenciar el tope de
 ```text
 --- Vuelta 1/5 ---
 [Modelo] ACCION: consultar_disponibilidad:06:00-08:00
-[Herramienta -> consultar_disponibilidad] Puestos libres en 06:00-08:00: P-01, P-02, P-03, P-04, P-05, P-06, P-07, P-08, P-09, P-10, P-11, P-12, P-13, P-14, P-15, P-16, P-17, P-18, P-19, P-20.
+[Herramienta -> consultar_disponibilidad] Puestos libres en 06:00-08:00 (20 de 20): P-01, P-02, P-03, P-04, P-05, P-06, P-07, P-08, P-09, P-10, P-11, P-12, P-13, P-14, P-15, P-16, P-17, P-18, P-19, P-20. Puestos ocupados en 06:00-08:00: ninguno.
 
 --- Vuelta 2/5 ---
 [Modelo] ACCION: consultar_disponibilidad:06:00-08:00
@@ -189,5 +191,9 @@ Ejecutado con `PROVEEDOR=gemini`, `MODELO=gemini-3.1-flash-lite` y llave en `.en
 **Misión 3 — fuera de horario.** Y una cuarta, no prevista: pedir `reservar el puesto P-01 en la franja 06-08` sin `API_KEY` y con modelo real. El modelo respondió `FINAL: ... no tengo habilitada la función para crear nuevas reservas.` Es la respuesta correcta, y es la evidencia que faltaba de que un modelo de verdad **no inventa** una cuarta herramienta cuando el `SYSTEM_PROMPT` declara que la lista es completa.
 
 El simulador no puede evidenciar esto: por construcción nunca inventa una herramienta, así que su comportamiento correcto no demuestra nada sobre un modelo real. Con red, la diferencia es observable.
+
+**El timeout del taller no aguanta a este modelo.** El taller fija 10 s por llamada. Medido contra `gemini-3.1-flash-lite`, la latencia normal de este agente está entre 2 y 7 s, pero se dispersa: con 10 s fallaron 3 de 6 llamadas, casi la mitad. Aquí el default es `TIMEOUT_SEGUNDOS=60`. Además el timeout se reporta con `ErrorTimeout`, subclase de `ErrorModelo`, para que la sugerencia diga "sube `TIMEOUT_SEGUNDOS`, la llave no es el problema" y no mande a revisar unas credenciales que pueden estar perfectas. Sin esta separación, el mensaje de error era activamente engañoso: la llave funcionaba.
+
+**Cuidado al repetir las trazas en modo simulado.** Como el agente carga solo el `.env`, quitar la variable del entorno ya no fuerza el simulador: hay que **vaciarlo** con `API_KEY= python3 ...`. Con `env -u API_KEY` el `.env` la repone y el agente sale a la red. Es la diferencia entre una traza reproducible y una que gasta cuota sin avisar.
 
 Nota de compatibilidad: el agente llama al endpoint compatible de Google, `v1beta/openai/chat/completions`, y no al nativo `:generateContent`. Cambiar a este último rompería el código, porque usa autenticación por `?key=` en la URL y devuelve `candidates[].content.parts[].text`, mientras el agente espera `Authorization: Bearer` y `choices[].message.content`.

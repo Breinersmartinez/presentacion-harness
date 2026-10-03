@@ -25,6 +25,7 @@ PROVEEDOR=gemini
 API_KEY=...          # la llave del proveedor; nunca la subas al repo
 MODELO=gemini-3.1-flash-lite
 MAX_VUELTAS=5
+TIMEOUT_SEGUNDOS=60
 ```
 
 Importante: en cuanto existe un `API_KEY`, el agente **deja el MODO SIMULADO y
@@ -43,6 +44,7 @@ Variables de entorno:
 | `PROVEEDOR` | `gemini` | `gemini` (Google AI Studio) o `groq` |
 | `MODELO` | según proveedor | Sobrescribe el modelo por defecto del taller |
 | `MAX_VUELTAS` | `5` | Tope duro de vueltas por misión |
+| `TIMEOUT_SEGUNDOS` | `60` | Espera máxima por llamada al proveedor |
 
 Si `API_KEY` empieza con `gsk_`, el proveedor se detecta como Groq aunque `PROVEEDOR` diga otra cosa: la llave manda sobre la variable. Un `PROVEEDOR` distinto de `gemini` o `groq` aborta con un mensaje.
 
@@ -79,11 +81,13 @@ Son las tres del reto. **No hay una cuarta.**
 
 | Herramienta | Parámetro | Devuelve | Autonomía |
 | --- | --- | --- | --- |
-| `consultar_disponibilidad` | `franja` | Lista de puestos libres, o aviso de laboratorio cerrado con el horario | Ejecuta y reporta |
+| `consultar_disponibilidad` | `franja` | Lista de puestos **libres y ocupados** de esa franja, o aviso de laboratorio cerrado con el horario | Ejecuta y reporta |
 | `consultar_reserva` | `codigo_estudiante` | Puesto, franja e `id_reserva`, o que no hay reservas activas | Ejecuta y reporta |
 | `cancelar_reserva` | `id_reserva` | Resultado de la cancelación | **Ejecuta con aprobación** (Human-in-the-loop) |
 
 La disponibilidad no se guarda en un diccionario aparte: se **deriva** de `RESERVAS` (los 20 puestos menos los ocupados de esa franja). Así no hay dos fuentes de verdad que puedan contradecirse.
+
+Devuelve las dos listas, no solo la de libres, y no es cosmético. Cuando solo devolvía los libres, el modelo tenía que **deducir** que un puesto ausente de la lista estaba ocupado, y lo hacía al revés: preguntaba "¿está ocupado el P-04?", recibía una lista donde `P-04` faltaba, y contestaba que estaba libre. Se reprodujo 3 de 3. Con los ocupados escritos en el texto, `P-04 (E-101, RES-402)` no hay nada que deducir, y la misma pregunta acierta 6 de 6.
 
 ### Human-in-the-loop
 
@@ -167,6 +171,7 @@ El código del taller es deliberadamente minimalista. Estas son las correcciones
 
 Dos decisiones donde el enunciado y el taller no se alinean, y qué se hizo:
 
+- **`TIMEOUT_SEGUNDOS`.** El taller fija 10 s. Medido contra `gemini-3.1-flash-lite`, la latencia normal está entre 2 y 7 s pero se dispersa: con 10 s fallaron 3 de 6 llamadas. Aquí el default es 60 s. Un timeout se reporta como `ErrorTimeout`, una subclase de `ErrorModelo`, para que la sugerencia diga "sube TIMEOUT_SEGUNDOS, la llave no es el problema" en vez de mandar a revisar unas credenciales que pueden estar perfectas.
 - **`MAX_VUELTAS`.** El taller comprueba el tope *antes* de llamar al modelo, así que con `MAX_VUELTAS = 5` da 4 vueltas efectivas. Aquí el bucle itera 5 vueltas y el tope corta al terminar la quinta. Se registraría la diferencia si el profesor compara contra el taller.
 - **Modelos.** El enunciado cita `gemini-3.5-flash-lite` y `qwen/qwen3.8-27b`; aquí se usan `gemini-2.5-flash-lite` y `qwen/qwen3-32b`, que son los que existen en los proveedores. Se sobrescriben con `MODELO`.
 
