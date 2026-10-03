@@ -114,6 +114,9 @@
   .capa h3{ font-family:var(--mono); font-size:1.2rem; margin:.1rem 0 .3rem; }
   .capa .ruta{ font-family:var(--mono); font-size:.9rem; color:var(--verde); margin-bottom:.4rem; }
   .capa p{ font-size:1rem; }
+  .cabeza{ display:flex; align-items:center; gap:1.5rem; }
+  .cabeza > div{ flex:1; min-width:0; }
+  .icono{ width:clamp(72px, 8.5vw, 118px); height:auto; flex:0 0 auto; }
   .lista{ list-style:none; }
   .lista li{
     display:flex; gap:.7rem; align-items:baseline;
@@ -190,6 +193,8 @@
   @media (max-width:720px){
     .slide{ aspect-ratio:auto; min-height:60vh; padding:1.4rem 1.2rem; }
     .deck{ padding:0 0 .5rem 0; }
+    .cabeza{ align-items:flex-start; }
+    .icono{ width:64px; }
   }
 </style>
 <script>document.documentElement.classList.add('js');</script>
@@ -208,268 +213,153 @@
       <span class="chip">Breiner Martinez</span>
       <span class="chip gris">19 de septiembre de 2026</span>
     </div>
-    <aside class="notas"><strong>Notas.</strong> Abrir con la tesis: “impedimos que la IA pase directo del requerimiento al código”. Decir que la herramienta que usó este grupo en el proyecto es el harness, no la IA suelta. Mencionar que cada diapositiva muestra la estación de la cadena en la que estamos.</aside>
+    <aside class="notas"><strong>Notas.</strong> Abrir con la tesis: “impedimos que la IA pase directo del requerimiento al código”. Decir que la herramienta que usó este grupo en el proyecto es el harness, no la IA suelta. Esta presentación son las 6 skills del harness, una por diapositiva.</aside>
   </section>
 
-  <!-- 2 · El problema -->
-  <section class="slide" data-n="2" data-titulo="El problema">
+  <!-- 2 · Skill 1/6 · crear-especificacion -->
+  <section class="slide" data-n="2" data-titulo="crear-especificacion">
     <div class="cinta">Requisito <span class="cur">→</span> Especificación <span aria-hidden="true">→</span> Plan <span aria-hidden="true">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
-    <p class="kicker">01 · Por qué existe esto</p>
-    <h2>La IA rellena los huecos</h2>
-    <p class="mensaje" style="margin-top:1rem">Si no la frenamos, una IA completa lo que no le dijimos con suposiciones plausibles: inventa límites, roles, políticas y plazos.</p>
-    <p class="tesis" style="margin-top:1.2rem">Nuestra respuesta: obligarla a <b>decidir</b>, <b>planificar</b>, <b>ejecutar de a una</b> tarea y <b>validar con evidencia</b>. Ninguna etapa avanza sin su documento.</p>
-    <aside class="notas"><strong>Notas.</strong> Ejemplo real: cuando pedimos directamente una especificación, la skill preguntó las decisiones pendientes y no redactó nada antes de las respuestas. Sin esa barrera, la IA habría elegido por nosotros.</aside>
-  </section>
-
-  <!-- 3 · Mapa del harness -->
-  <section class="slide" data-n="3" data-titulo="Mapa del harness">
-    <div class="cinta">Contexto <span aria-hidden="true">→</span> Skills <span aria-hidden="true">→</span> Evidencia</div>
-    <p class="kicker">02 · La estructura de un vistazo</p>
-    <h2>Mapa del harness</h2>
-    <div class="cols">
-      <div class="capa">
-        <p class="n">01</p>
-        <h3>Contexto</h3>
-        <p class="ruta">AGENTS.md</p>
-        <p>Reglas operativas, convenciones y qué no hacer. Lo que un agente lee antes de decidir.</p>
-      </div>
-      <div class="capa">
-        <p class="n">02</p>
-        <h3>Skills</h3>
-        <p class="ruta">.opencode/skills/</p>
-        <p>Seis SKILL.md. Se activan solas por su descripción, sin que nadie escriba su nombre. Cada una con su regla dura.</p>
-      </div>
-      <div class="capa">
-        <p class="n">03</p>
-        <h3>Evidencia</h3>
-        <p class="ruta">docs/ y producto/</p>
-        <p>La spec, el plan, el informe de validación y el HTML del producto. Se abren con doble clic.</p>
-      </div>
-    </div>
-    <p class="mensaje" style="margin-top:1rem">Todo en español, autocontenido, sin build y sin servidor.</p>
-    <aside class="notas"><strong>Notas.</strong> Tres capas: contexto (instrucciones), skills (comportamiento) y evidencia (pruebas). Señalar que las skills se activan por su descripción: en el reto nunca las nombramos, solo pedíamos el resultado.</aside>
-  </section>
-
-  <!-- 4 · El flujo -->
-  <section class="slide" data-n="4" data-titulo="El flujo">
-    <div class="cinta">Requisito <span class="cur">→</span> Especificación <span class="cur">→</span> Plan <span class="cur">→</span> Ejecución <span class="cur">→</span> Validación</div>
-    <p class="kicker">03 · Un requisito no llega directo al código</p>
-    <h2>El flujo</h2>
-    <svg viewBox="0 0 1100 330" role="img" aria-labelledby="f-titulo f-desc" style="width:100%;height:auto;margin-top:1rem">
-      <title id="f-titulo">Flujo de la cadena: de requisito a validación</title>
-      <desc id="f-desc">Cinco estaciones conectadas: requisito, especificación, plan, ejecución y validación; debajo corre el riel transversal de auditar-contexto; tres banderas ámbar marcan los puntos donde interviene una persona.</desc>
-      <defs>
-        <marker id="flecha" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#245C43"/></marker>
-      </defs>
-      <g font-family="ui-monospace, monospace">
-        <g>
-          <text x="12" y="26" fill="#245C43" font-size="15" font-weight="700">Requisito</text>
-          <rect x="10" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
-          <text x="85" y="60" text-anchor="middle" fill="#1C2333" font-size="12">“Necesito reservar</text>
-          <text x="85" y="78" text-anchor="middle" fill="#1C2333" font-size="12">un puesto”</text>
-        </g>
-        <g>
-          <text x="222" y="26" fill="#245C43" font-size="15" font-weight="700">Especificación</text>
-          <rect x="220" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
-          <text x="295" y="60" text-anchor="middle" fill="#1C2333" font-size="12">7 secciones ·</text>
-          <text x="295" y="78" text-anchor="middle" fill="#1C2333" font-size="12">§3, §6, §7 deciden</text>
-          <circle cx="295" cy="122" r="7" fill="#C77E1E"/>
-          <text x="294" y="158" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">persona responde</text>
-          <text x="294" y="174" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">las preguntas</text>
-        </g>
-        <g>
-          <text x="432" y="26" fill="#245C43" font-size="15" font-weight="700">Plan</text>
-          <rect x="430" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
-          <text x="505" y="60" text-anchor="middle" fill="#1C2333" font-size="12">4 tareas ·</text>
-          <text x="505" y="78" text-anchor="middle" fill="#1C2333" font-size="12">responsable y Sí/No</text>
-        </g>
-        <g>
-          <text x="642" y="26" fill="#245C43" font-size="15" font-weight="700">Ejecución</text>
-          <rect x="640" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
-          <text x="715" y="60" text-anchor="middle" fill="#1C2333" font-size="12">una tarea por vez</text>
-          <text x="715" y="78" text-anchor="middle" fill="#1C2333" font-size="12">· se verifica</text>
-          <circle cx="715" cy="122" r="7" fill="#C77E1E"/>
-          <text x="714" y="158" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">persona confirma</text>
-          <text x="714" y="174" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">antes de tocar nada</text>
-        </g>
-        <g>
-          <text x="852" y="26" fill="#245C43" font-size="15" font-weight="700">Validación</text>
-          <rect x="850" y="36" width="150" height="58" rx="4" fill="#E7EBE3" stroke="#245C43" stroke-width="2"/>
-          <text x="925" y="60" text-anchor="middle" fill="#1C2333" font-size="12">veredicto con</text>
-          <text x="925" y="78" text-anchor="middle" fill="#1C2333" font-size="12">evidencia, sin editar</text>
-          <circle cx="925" cy="122" r="7" fill="#C77E1E"/>
-          <text x="924" y="158" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">persona recibe</text>
-          <text x="924" y="174" text-anchor="middle" fill="#C77E1E" font-size="11" font-weight="700">el veredicto</text>
-        </g>
-      </g>
-      <g stroke="#245C43" stroke-width="2.5" marker-end="url(#flecha)">
-        <path d="M160 65 H216"/>
-        <path d="M370 65 H426"/>
-        <path d="M580 65 H636"/>
-        <path d="M790 65 H846"/>
-      </g>
-      <g font-family="ui-monospace, monospace">
-        <rect x="10" y="230" width="990" height="34" rx="3" fill="none" stroke="#C77E1E" stroke-dasharray="6 5" stroke-width="2"/>
-        <text x="24" y="252" fill="#C77E1E" font-size="13" font-weight="700">auditar-contexto</text>
-        <text x="210" y="252" fill="#5A6577" font-size="12">revisa AGENTS.md contra docs, skills y producto; no edita nada</text>
-      </g>
-      <g font-family="ui-monospace, monospace">
-        <circle cx="20" cy="140" r="6" fill="#C77E1E"/>
-        <circle cx="20" cy="165" r="6" fill="none" stroke="#245C43" stroke-width="1.5"/>
-        <text x="38" y="145" fill="#1C2333" font-size="12">bandera ámbar = interviene una persona</text>
-        <text x="38" y="170" fill="#1C2333" font-size="12">caja verde = entregable que se abre y revisa</text>
-      </g>
-    </svg>
-    <aside class="notas"><strong>Notas.</strong> Recorrer de izquierda a derecha: requisito, especificación (la persona responde las decisiones), plan, ejecución (la persona confirma antes de cada cambio), validación (la persona recibe el veredicto). Debajo va auditar-contexto como control transversal que no edita. Los tres puntos ámbar son donde el humano, no la IA, toma la decisión.</aside>
-  </section>
-
-  <!-- 5 · Las 6 skills -->
-  <section class="slide" data-n="5" data-titulo="Las 6 skills">
-    <div class="cinta">Contexto <span class="cur">→</span> Skills <span aria-hidden="true">→</span> Evidencia</div>
-    <p class="kicker">04 · Qué hace cada una y su regla dura</p>
-    <h2>Las 6 skills</h2>
-    <ul class="lista">
-      <li><span class="let">S1</span><span><b>crear-especificacion</b> — convierte una petición en un contrato con decisiones. Regla real: “No avances a la redacción mientras una decisión material no esté definida.”</span></li>
-      <li><span class="let">S2</span><span><b>escribir-plan</b> — deriva tareas verificables de la spec. Regla real: “Ninguna tarea dura más de media jornada; cada una tiene responsable y criterio Sí/No.”</span></li>
-      <li><span class="let">S3</span><span><b>ejecutar-plan</b> — hace una tarea por vez y espera confirmación. Regla real: “Si no puede verificar un criterio, lo declara no verificable; nunca lo declara cumplido.”</span></li>
-      <li><span class="let">S4</span><span><b>validar-resultado</b> — contrasta el resultado con la spec, sin editarlo. Regla real: “Un ‘Sí’ sin evidencia está prohibido.”</span></li>
-      <li><span class="let">S5</span><span><b>auditar-contexto</b> — ya adaptada a este repositorio; revisa si AGENTS.md sigue alineado con docs, skills y producto. Regla real: “Cada hallazgo cita una ruta y una evidencia observable.”</span></li>
-      <li><span class="let">S6</span><span><b>frontend-design</b> — la skill del profesor, usada tal cual, para diseño visual distintivo. Esta presentación se hizo con ella.</span></li>
-    </ul>
-    <p style="margin-top:.8rem">Se activan por su descripción, sin nombrarlas.</p>
-    <aside class="notas"><strong>Notas.</strong> En el reto las cinco primeras forman la cadena y sus refuerzos; frontend-design es del profesor y la usamos sin modificarla para esta presentación. La regla dura se lee textual de cada SKILL.md.</aside>
-  </section>
-
-  <!-- 6 · Por dentro de una skill -->
-  <section class="slide" data-n="6" data-titulo="Por dentro de una skill">
-    <div class="cinta">Skills <span class="cur">→</span> Por dentro</div>
-    <p class="kicker">05 · No es magia: es un procedimiento escrito</p>
-    <h2>Por dentro:<br>crear-especificacion</h2>
-    <div class="cols" style="margin-top:.6rem">
+    <div class="cabeza">
       <div>
-        <p>“Convierte una petición en el acuerdo que antecede al trabajo.”</p>
-        <ul class="lista" style="margin-top:.6rem">
-          <li><span class="let">1</span><span>Identifica las decisiones que alteran alcance, comportamiento o verificación y pregunta solo las necesarias.</span></li>
-          <li><span class="let">2</span><span>No avanza a la redacción mientras una decisión no esté definida; no sustituye una respuesta por una suposición.</span></li>
-          <li><span class="let">3</span><span>Entrega un único HTML autocontenido, en español.</span></li>
-        </ul>
+        <p class="kicker">Skill 01 de 6 · de requisito a especificación</p>
+        <h2>crear-especificacion</h2>
       </div>
-      <div class="regla" style="border-color:var(--ambar)">Regla dura:<br>“No inventes límites, roles, políticas, plazos ni comportamientos de error. Una decisión pendiente se pregunta.”</div>
+      <svg class="icono" viewBox="0 0 72 72" role="img" aria-label="Documento de especificación con una pregunta por decidir">
+        <g fill="none" stroke="#245C43" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M24 8h20l8 8v42a4 4 0 0 1-4 4H24a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z"/>
+          <path d="M44 8v8h8"/>
+          <path d="M28 26h20" opacity=".5"/>
+          <path d="M28 34h14" opacity=".5"/>
+          <path d="M28 42h20" opacity=".5"/>
+        </g>
+        <circle cx="47" cy="52" r="8" fill="#9C5B0E"/>
+        <path d="M47 50.5c0-.9.5-1.5 1.4-1.9 1-.4 1.9-.7 1.9-1.9 0-1.2-1-1.8-2.3-1.5-.8.2-1.3.9-1.5 1.7" fill="none" stroke="#F3F4EE" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="47" cy="56.5" r="1.4" fill="#F3F4EE"/>
+      </svg>
     </div>
-    <p style="margin-top:.9rem"><a class="chip" href="07-work/especificacion-crear-especificacion.html">docs/07-work/especificacion-crear-especificacion.html</a></p>
-    <aside class="notas"><strong>Notas.</strong> Mostrar que una skill es un documento de instrucciones con procedimiento, contrato y reglas duras. Aquí, el fragmento real de crear-especificacion: preguntar antes de escribir y no inventar decisiones. Ese archivo tiene también su spec propia en docs/07-work.</aside>
+    <p class="mensaje" style="margin-top:1rem">Crea una especificación verificable para un incremento: convierte una petición suelta en un contrato con decisiones. No planifica ni implementa.</p>
+    <aside class="notas"><strong>Notas.</strong> Regla dura: “No inventes límites, roles, políticas, plazos ni comportamientos de error. Una decisión pendiente se pregunta.” En el caso de demo preguntó las decisiones pendientes antes de redactar nada.</aside>
   </section>
 
-  <!-- 7 · Entregable 1: la especificación -->
-  <section class="slide" data-n="7" data-titulo="Entregable 1">
+  <!-- 3 · Skill 2/6 · escribir-plan -->
+  <section class="slide" data-n="3" data-titulo="escribir-plan">
     <div class="cinta">Requisito <span aria-hidden="true">→</span> Especificación <span class="cur">→</span> Plan <span aria-hidden="true">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
-    <p class="kicker">06 · Entregable 1</p>
-    <h2>La especificación</h2>
-    <div class="cols" style="margin-top:.5rem">
+    <div class="cabeza">
       <div>
-        <p>7 secciones: <span class="chip">§1 Resumen</span> <span class="chip">§2 Objetivos</span> <span class="chip">§3 Fuera de alcance</span> <span class="chip">§4 Diseño</span> <span class="chip">§5 Casos borde</span> <span class="chip">§6 Criterios</span> <span class="chip">§7 Decisiones</span></p>
-        <div class="regla">§3 Fuera de alcance:<br>“Cancelación: se difiere… Inicio de sesión: no se implementa porque el reto no permite servidor… Sanciones: requieren una política institucional que el requisito no entrega.”</div>
+        <p class="kicker">Skill 02 de 6 · de especificación a plan</p>
+        <h2>escribir-plan</h2>
       </div>
+      <svg class="icono" viewBox="0 0 72 72" role="img" aria-label="Plan con tareas y casillas marcadas">
+        <g fill="none" stroke="#245C43" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="10" y="8" width="52" height="56" rx="4"/>
+          <rect x="18" y="18" width="9" height="9" rx="1"/>
+          <path d="M20.5 22.5l2.4 2.4 4.2-4.2"/>
+          <path d="M32 22.5h22"/>
+          <rect x="18" y="36" width="9" height="9" rx="1"/>
+          <path d="M20.5 40.5l2.4 2.4 4.2-4.2"/>
+          <path d="M32 40.5h22"/>
+          <rect x="18" y="54" width="9" height="9" rx="1"/>
+          <path d="M32 58.5h22"/>
+        </g>
+      </svg>
+    </div>
+    <p class="mensaje" style="margin-top:1rem">Deriva un plan de trabajo verificable de una spec ya cerrada: tareas acotadas, con responsable y criterio Sí/No. No redefine la spec ni ejecuta.</p>
+    <aside class="notas"><strong>Notas.</strong> Regla dura: “Ninguna tarea dura más de media jornada; cada una tiene responsable y criterio Sí/No.”</aside>
+  </section>
+
+  <!-- 4 · Skill 3/6 · ejecutar-plan -->
+  <section class="slide" data-n="4" data-titulo="ejecutar-plan">
+    <div class="cinta">Requisito <span aria-hidden="true">→</span> Especificación <span aria-hidden="true">→</span> Plan <span class="cur">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
+    <div class="cabeza">
       <div>
-        <div class="regla">§6 Criterios — verificar con Sí/No:<br>“Abrir sin instalar dependencias. 20 filas y 7 franjas. Un nombre y un clic reservan. Sin nombre no reserva. La reserva sobrevive a recargar.”</div>
-        <div class="regla">§7 Decisiones —<br>identificación por nombre (máximo 40); una reserva por nombre y franja; cancelación fuera de este ciclo.</div>
+        <p class="kicker">Skill 03 de 6 · del plan a la ejecución</p>
+        <h2>ejecutar-plan</h2>
       </div>
+      <svg class="icono" viewBox="0 0 72 72" role="img" aria-label="Una tarea por vez, con pasos de progreso">
+        <g fill="none" stroke="#245C43" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="14" y="12" width="44" height="40" rx="4"/>
+          <rect x="22" y="20" width="10" height="10" rx="1"/>
+          <path d="M24.5 25l2.6 2.6 4.6-4.8"/>
+          <path d="M22 38h28" opacity=".5"/>
+        </g>
+        <g stroke="#9C5B0E" fill="none" stroke-width="3" stroke-linecap="round">
+          <path d="M26 60h5"/>
+          <circle cx="39" cy="60" r="2.6" fill="#9C5B0E" stroke="none"/>
+          <path d="M47 60h5"/>
+        </g>
+      </svg>
     </div>
-    <p style="margin-top:.9rem"><a class="chip" href="especificacion-reserva-puestos-laboratorio.html">docs/especificacion-reserva-puestos-laboratorio.html</a></p>
-    <aside class="notas"><strong>Notas.</strong> Tres decisiones duras de §7: identificarse con el nombre (se descartó login porque no hay servidor), una reserva por nombre y franja (se descartaron sanciones), y la cancelación fuera del ciclo. §3 dice en voz alta lo que no se hará y por qué.</aside>
+    <p class="mensaje" style="margin-top:1rem">Ejecuta y verifica una única tarea de un plan ya existente, exponiendo el impacto y esperando confirmación antes de modificar nada.</p>
+    <aside class="notas"><strong>Notas.</strong> Regla dura: “Si no puede verificar un criterio, lo declara no verificable; nunca lo declara cumplido.” En la demo respondió “No verificable” (9/9 escenarios) en lugar de declarar éxito sin comprobar.</aside>
   </section>
 
-  <!-- 8 · Entregable 2: plan y validación -->
-  <section class="slide" data-n="8" data-titulo="Entregable 2">
-    <div class="cinta">Especificación <span aria-hidden="true">→</span> Plan <span class="cur">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
-    <p class="kicker">07 · Entregable 2</p>
-    <h2>El plan y la validación</h2>
-    <table style="margin-top:.6rem">
-      <thead><tr><th>#</th><th>Resultado</th><th>Depende</th><th>Est.</th><th>Criterio Sí/No</th></tr></thead>
-      <tbody>
-        <tr><td><b>T1</b> <span class="ok">● primera</span></td><td>Estructura de 20 puestos y 7 franjas de dos horas</td><td>—</td><td>1 h</td><td>Al abrir se ven puestos 1–20 y franjas 06–08 a 18–20</td></tr>
-        <tr><td><b>T2</b></td><td>Reserva de un puesto libre asociada a un nombre</td><td>1</td><td>2 h</td><td>Con nombre escrito, un clic reserva y muestra el nombre; sin nombre no reserva</td></tr>
-        <tr><td><b>T3</b></td><td>Persistencia local y recuperación segura</td><td>2</td><td>1 h</td><td>Tras recargar la celda continúa reservada; si los datos son inválidos, aviso</td></tr>
-        <tr><td><b>T4</b></td><td>Verificación manual de los criterios del ciclo</td><td>1, 2, 3</td><td>30 min</td><td>Evidencia de apertura, reserva, bloqueo y persistencia</td></tr>
-      </tbody>
-    </table>
-    <div class="regla" style="margin-top:.8rem"><b>Veredicto de validar-resultado</b> (ejecutado hoy, Chrome real): <span class="ok">Sirve — 5/5 criterios con evidencia</span>. “Un ‘Sí’ sin evidencia está prohibido.”</div>
-    <div class="filas" style="margin-top:.8rem"><a class="chip" href="PLAN.md">docs/PLAN.md</a> <a class="chip" href="informe-validacion-reservas-laboratorio.md">docs/informe-validacion-reservas-laboratorio.md</a></div>
-    <aside class="notas"><strong>Notas.</strong> PLAN.md: 4 tareas, cada una con responsable (Breiner Martinez), dependencias, estimación y criterio Sí/No. La tarea 1 es la primera ejecutable. El informe de validación se generó hoy ejecutando validar-resultado contra la spec: el producto cumple los 5 criterios, verificados en Chrome real.</aside>
-  </section>
-
-  <!-- 9 · El producto y la prueba -->
-  <section class="slide" data-n="9" data-titulo="Producto y prueba">
-    <div class="cinta">Plan <span class="cur">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
-    <p class="kicker">08 · Lo que se construyó y las pruebas</p>
-    <h2>El producto y la prueba</h2>
-    <div class="filas">
-      <span class="cifra">20<small>puestos</small></span>
-      <span class="cifra">7<small>franjas de 2 h</small></span>
-      <span class="cifra">140<small>celdas</small></span>
-      <span class="cifra">localStorage<small>sin backend</small></span>
+  <!-- 5 · Skill 4/6 · validar-resultado -->
+  <section class="slide" data-n="5" data-titulo="validar-resultado">
+    <div class="cinta">Requisito <span aria-hidden="true">→</span> Especificación <span aria-hidden="true">→</span> Plan <span aria-hidden="true">→</span> Ejecución <span class="cur">→</span> Validación</div>
+    <div class="cabeza">
+      <div>
+        <p class="kicker">Skill 04 de 6 · de la ejecución a la validación</p>
+        <h2>validar-resultado</h2>
+      </div>
+      <svg class="icono" viewBox="0 0 72 72" role="img" aria-label="Sello de validación con evidencia">
+        <g fill="none" stroke="#245C43" stroke-width="3.4">
+          <circle cx="36" cy="36" r="24"/>
+          <circle cx="36" cy="36" r="18" stroke="#9C5B0E" stroke-dasharray="2.5 4"/>
+          <path d="M28.5 36.5l5 5 10.5-11" stroke="#245C43" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+      </svg>
     </div>
-    <div class="regla" style="margin-top:.8rem">Demo en vivo: sin nombre no reserva · “Ana” reserva · segundo clic no cambia · al recargar persiste.</div>
-    <table style="margin-top:.8rem">
-      <thead><tr><th>Prueba</th><th>Resultado</th><th>Evidencia</th></tr></thead>
-      <tbody>
-        <tr><td>Instalación (<span class="chip">opencode debug skill</span>)</td><td class="ok">Pasó</td><td>OpenCode reconoció las cinco skills canónicas</td></tr>
-        <tr><td>Renderizado mínimo</td><td class="ok">Pasó</td><td>El DOM generado tiene 20 filas, 7 franjas y 140 celdas</td></tr>
-        <tr><td>crear-especificacion sin nombrarla</td><td class="ok">Pasó</td><td>Se activó sola, preguntó decisiones pendientes y no redactó antes de las respuestas</td></tr>
-        <tr><td>ejecutar-plan, criterio no comprobable</td><td class="nv">Pasó*</td><td>Verdictó “No verificable” (9/9 escenarios) en lugar de declarar éxito sin comprobarlo</td></tr>
-        <tr><td>Verificación manual</td><td class="ok">Pasó</td><td>Sin nombre no reserva; “Ana” reserva y bloquea; recarga persiste</td></tr>
-      </tbody>
-    </table>
-    <p style="margin-top:.6rem">*“Pasó” de ejecutar-plan significa que la skill se comportó como debía: respondió “No verificable” en vez de declarar éxito sin comprobar.</p>
-    <div class="filas" style="margin-top:.6rem"><a class="chip" href="../producto/reservas-laboratorio.html">producto/reservas-laboratorio.html</a></div>
-    <aside class="notas"><strong>Notas.</strong> Destacar la fila ejecutar-plan: “Pasó” quiere decir que la skill no mintió; el criterio de persistencia no era comprobable en ese entorno y respondió “No verificable” (9/9 escenarios simulados). Hoy, el informe de validación compró ese mismo criterio en un navegador real.</aside>
+    <p class="mensaje" style="margin-top:1rem">Valida un producto, documento o cambio ya hecho contra la spec y sus criterios: emite evidencia y un veredicto, sin tocar lo validado.</p>
+    <aside class="notas"><strong>Notas.</strong> Regla dura: “Un ‘Sí’ sin evidencia está prohibido.” El informe de las reservas salió “Sirve — 5/5 criterios con evidencia”, ejecutado en Chrome real.</aside>
   </section>
 
-  <!-- 10 · Nuestro proceso -->
-  <section class="slide" data-n="10" data-titulo="Nuestro proceso">
-    <div class="cinta">Toda la cadena</div>
-    <p class="kicker">09 · Qué aprendimos</p>
-    <h2>Nuestro proceso</h2>
-    <ul class="lista">
-      <li><span class="let">a</span><span><b>El control que funcionó.</b> ejecutar-plan respondió “No verificable” en lugar de declarar éxito. Un entregable honesto vale más que una tarea marcada.</span></li>
-      <li><span class="let">b</span><span><b>La decisión.</b> Descartamos nuestra skill de presentaciones y usamos la del profesor, sin modificar. Esta presentación es la evidencia de esa decisión.</span></li>
-      <li><span class="let">c</span><span><b>El límite reconocido.</b> La cancelación de reservas quedó fuera del ciclo a propósito, para cumplir y verificar un mínimo completo.</span></li>
-    </ul>
-    <div class="filas" style="margin-top:1rem"><a class="chip" href="07-work/especificacion-frontend-design.html">docs/07-work/especificacion-frontend-design.html</a><span class="chip gris">archivada hasta nueva decisión</span></div>
-    <aside class="notas"><strong>Notas.</strong> (a) La herramienta nos frenó para no declarar éxito sin evidencia; eso es el harness. (b) La spec de decks que hicimos quedó archivada en docs/07-work; usamos la skill del profesor y este deck lo demuestra. (c) La cancelación se difirió en la spec §7: mejor un ciclo corto verificado.</aside>
-  </section>
-
-  <!-- 11 · Cierre -->
-  <section class="slide" data-n="11" data-titulo="Cierre">
-    <div class="cinta">Requisito <span aria-hidden="true">→</span> Especificación <span aria-hidden="true">→</span> Plan <span aria-hidden="true">→</span> Ejecución <span aria-hidden="true">→</span> Validación</div>
-    <p class="kicker">10 · Cierre</p>
-    <h1 style="font-size:clamp(1.8rem,3.4vw,2.8rem)">Lo que nos llevamos</h1>
-    <p class="tesis" style="margin-top:1rem">Impedimos que la IA pase directo del requerimiento al código: decide, planifica, ejecuta de a una tarea y valida con evidencia, y cada paso deja un entregable que se abre y se revisa.</p>
-    <div class="cols" style="margin-top:1.4rem">
-      <div class="capa"><p class="n">siguiente</p><h3>Cancelación</h3><p class="ruta">docs/especificacion-reserva-puestos-laboratorio.html</p><p>Quedó fuera del ciclo a propósito; es el próximo incremento.</p></div>
-      <div class="capa"><p class="n">aprendizaje</p><h3>Verificar, no marcar</h3><p class="ruta">docs/informe-validacion-reservas-laboratorio.md</p><p>“Tres tareas verificadas valen más que ocho con palomita.”</p></div>
+  <!-- 6 · Skill 5/6 · auditar-contexto -->
+  <section class="slide" data-n="6" data-titulo="auditar-contexto">
+    <div class="cinta">Requisito <span aria-hidden="true">→</span> Especificación <span aria-hidden="true">→</span> Plan <span aria-hidden="true">→</span> Ejecución <span aria-hidden="true">→</span> Validación<span class="rail">════════ auditar-contexto ════════ (control transversal)</span></div>
+    <div class="cabeza">
+      <div>
+        <p class="kicker">Skill 05 de 6 · transversal a todo el contexto</p>
+        <h2>auditar-contexto</h2>
+      </div>
+      <svg class="icono" viewBox="0 0 72 72" role="img" aria-label="Auditoría del contexto con lupa">
+        <g fill="none" stroke="#245C43" stroke-width="3" stroke-linecap="round">
+          <path d="M14 24h34" opacity=".5"/>
+          <path d="M18 31h30" opacity=".5"/>
+          <rect x="24" y="22" width="34" height="18" rx="2" opacity=".55"/>
+        </g>
+        <circle cx="32" cy="33" r="11" fill="#9C5B0E"/>
+        <circle cx="32" cy="33" r="11" fill="none" stroke="#9C5B0E" stroke-width="3.4"/>
+        <path d="M40.5 41.5l8.5 8.5" stroke="#9C5B0E" stroke-width="4.4" stroke-linecap="round"/>
+      </svg>
     </div>
-    <aside class="notas"><strong>Notas.</strong> Cerrar repitiendo la tesis y dejando la idea del siguiente incremento (cancelación) y el aprendizaje del equipo: la honestidad de un “No verificable” es parte del producto. Agradecer y ofrecer llevar el deck a las preguntas.</aside>
+    <p class="mensaje" style="margin-top:1rem">Revisa si AGENTS.md sigue alineado con docs, skills y producto, y avisa cuando algo deja de ser coherente. Informa hallazgos; no edita.</p>
+    <aside class="notas"><strong>Notas.</strong> Regla dura: “Cada hallazgo cita una ruta y una evidencia observable.” Es la skill que se adaptó a este repositorio durante el reto.</aside>
   </section>
 
-  <!-- 12 · Respaldo (no numerada en el flujo principal) -->
-  <section class="slide" data-n="12" data-titulo="Respaldo (Plan B)">
-    <div class="cinta">Respaldo · Plan B</div>
-    <p class="kicker">Plan B · si algo falla en vivo</p>
-    <h2>Respaldo</h2>
-    <ul class="lista">
-      <li><span class="let">1</span><span>Si OpenCode falla: abrir los <span class="chip">.opencode/skills/*/SKILL.md</span> que ya viven versionados en el repo.</span></li>
-      <li><span class="let">2</span><span>Si el navegador falla: abrir <a class="chip" href="../producto/reservas-laboratorio.html">producto/reservas-laboratorio.html</a> en otro navegador.</span></li>
-      <li><span class="let">3</span><span>Artefactos para revisar: <a class="chip" href="especificacion-reserva-puestos-laboratorio.html">docs/especificacion-reserva-puestos-laboratorio.html</a> <a class="chip" href="PLAN.md">docs/PLAN.md</a> <a class="chip" href="informe-validacion-reservas-laboratorio.md">docs/informe-validacion-reservas-laboratorio.md</a>.</span></li>
-    </ul>
-    <p class="tesis" style="margin-top:1rem">Un video o una captura respalda, pero no sustituye: los entregables se abren con doble clic.</p>
-    <aside class="notas"><strong>Notas.</strong> Solo usar si falla la demo en vivo. Muestro el plan B con las rutas reales de skills, spec, plan e informe. Nada se genera en vivo: todo está versionado.</aside>
+  <!-- 7 · Skill 6/6 · frontend-design -->
+  <section class="slide" data-n="7" data-titulo="frontend-design">
+    <div class="cinta">Contexto <span aria-hidden="true">→</span> Skills <span class="cur">→</span> Evidencia<span class="rail">frontend-design · la skill del profesor, usada tal cual</span></div>
+    <div class="cabeza">
+      <div>
+        <p class="kicker">Skill 06 de 6 · diseño visual distintivo</p>
+        <h2>frontend-design</h2>
+      </div>
+      <svg class="icono" viewBox="0 0 72 72" role="img" aria-label="Lápiz de diseño">
+        <g fill="none" stroke="#245C43" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M50 8l14 14-34 34H16V42z"/>
+          <path d="M27 45l18-18" opacity=".5"/>
+        </g>
+        <circle cx="51" cy="9" r="3.2" fill="#9C5B0E"/>
+      </svg>
+    </div>
+    <p class="mensaje" style="margin-top:1rem">La skill del profesor para un diseño visual distintivo e intencional. La adoptamos sin modificar; esta presentación es su evidencia.</p>
+    <aside class="notas"><strong>Notas.</strong> Ni especificada ni modificada: se usa tal cual. Nuestra spec de decks quedó archivada en docs/07-work hasta nueva decisión.</aside>
   </section>
 
 </main>
 
 <div class="barra" role="toolbar" aria-label="Controles de la presentación">
-  <span id="contador">01 / 11</span>
+  <span id="contador">01 / 07</span>
   <span class="ctr">
     <button id="ant" type="button" aria-label="Diapositiva anterior">‹ Ant</button>
     <button id="sig" type="button" aria-label="Diapositiva siguiente">Sig ›</button>
@@ -488,7 +378,7 @@
 
   function numerada(i){
     var n = parseInt(slides[i].getAttribute('data-n'), 10);
-    return (n === 12) ? 'respaldo' : ('0' + n).slice(-2) + ' / 11';
+    return ('0' + n).slice(-2) + ' / 07';
   }
   function mostrar(i){
     if (i < 0 || i >= total) return;
